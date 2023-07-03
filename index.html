@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Graph Sparrow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="jquery.arrows.js"></script>
+    <script src="springy.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script>
+        $(document).ready(function () {
+            $(".node").draggable(); // Make node boxes draggable with jQuery UI
+
+            // Add four nodes
+            const node1 = {
+                id: "node-1",
+                category: "node-class-1",
+                text: "i am node 1"
+            };
+            const node2 = {
+                id: "node-2",
+                category: "node-class-2",
+                text: "i am node 2"
+            };
+            const node3 = {
+                id: "node-3",
+                category: "node-class-1",
+                text: "i am node 3"
+            };
+            const node4 = {
+                id: "node-4",
+                category: "node-class-2",
+                text: "i am node 4"
+            };
+
+            addNode(node1);
+            addNode(node2);
+            addNode(node3);
+            addNode(node4);
+
+            // Add edges between nodes
+            const edge1 = {
+                srcNodeId: "node-1",
+                dstNodeId: "node-2",
+                category: "edge-class-1",
+                text: "edge from node-1 to node-2"
+            }
+            const edge2 = {
+                srcNodeId: "node-2",
+                dstNodeId: "node-3",
+                category: "edge-class-2",
+                text: "edge from node-2 to node-3"
+            }
+            const edge3 = {
+                srcNodeId: "node-3",
+                dstNodeId: "node-4",
+                category: "edge-class-1",
+                text: "edge from node-3 to node-4"
+            }
+            const edge4 = {
+                srcNodeId: "node-4",
+                dstNodeId: "node-1",
+                category: "edge-class-2",
+                text: "edge from node-1 to node-2"
+            }
+            const edge5 = {
+                srcNodeId: "node-1",
+                dstNodeId: "node-3",
+                category: "edge-class-3",
+                text: "edge from node-1 to node-3"
+            }
+            const edge6 = {
+                srcNodeId: "node-2",
+                dstNodeId: "node-4",
+                category: "edge-class-3",
+                text: "edge from node-2 to node-4"
+            }
+
+            addEdge(edge1);
+            addEdge(edge2);
+            addEdge(edge3);
+            addEdge(edge4);
+            addEdge(edge5);
+            addEdge(edge6);
+
+            var arrows = $("arrow, inner");
+            setInterval(function () {
+                arrows.arrows("update");
+            }, 100);
+        });
+    </script>
+</head>
+
+<body>
+    <div id="graph-menu">
+        <h3 class="title is-4" style="float: left; margin: 0.3em;">graph-sparrow by alejp1998</h3>
+        <button id="reload-graph-layout" class="button is-link is-light"
+            style="float: left; margin: 0.1em">Reshuffle</button>
+
+        <div id="node-toggles">
+            <h3 class="title is-5" style="display: inline; margin: 0.5em;">Node Toggles</h5>
+        </div>
+
+        <div id="edge-toggles">
+            <h3 class="title is-5" style="display: inline; margin: 0.5em;">Edge Toggles</h5>
+        </div>
+    </div>
+
+    <div id="nodes-adder">
+        <h3 class="title is-5">Add a node</h3>
+
+        <div class="field">
+            <label class="label">Node id</label>
+            <div class="control">
+                <input id="node-id" class="input" type="text" placeholder="Node unique identifier">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Node class</label>
+            <div class="control">
+                <input id="node-class" class="input" type="text" placeholder="Node shared class">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Node text</label>
+            <div class="control">
+                <input id="node-text" class="input" type="text" placeholder="Text shown in node">
+            </div>
+        </div>
+    </div>
+
+    <div id="edges-adder">
+        <h3 class="title is-5">Add an edge</h3>
+
+        <div class="field">
+            <label class="label">Source node id</label>
+            <div class="control">
+                <div class="select">
+                    <select id="edge-src-node-id">
+                        <option>node-1</option>
+                        <option>node-2</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Destination node id</label>
+            <div class="control">
+                <div class="select">
+                    <select id="edge-dst-node-id">
+                        <option>node-1</option>
+                        <option>node-2</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Edge class</label>
+            <div class="control">
+                <input id="edge-class" class="input" type="text" placeholder="Edge shared class">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">Edge text</label>
+            <div class="control">
+                <input id="edge-text" class="input" type="text" placeholder="Text shown on edge">
+            </div>
+        </div>
+    </div>
+
+    <div id="hidden-nodes">
+        <h3 class="title is-5" style="float: right; margin: 0.3em;">Hidden Nodes</h3>
+    </div>
+
+    <div id="graph-viewer"></div>
+
+    <div id="svg-arrows"></div>
+
+    <script>
+        // Wait for document to be loaded
+        $(document).ready(function () {
+            // Load arrows and update them periodically
+            $(".node").draggable()
+            var arrows = $("arrow, inner");
+            setInterval(function () {
+                arrows.arrows("update");
+            }, 50);
+        });
+    </script>
+
+    <script src="addnodesedges.js"></script>
+    <script src="hideshownodes.js"></script>
+    <script src="edgenodetoggles.js"></script>
+    <script src="reloadgraphlayout.js"></script>
+</body>

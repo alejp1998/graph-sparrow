@@ -1,0 +1,122 @@
+#graph-menu {
+  min-height: 5vh;
+  padding: 1em;
+  margin: 0.1em;
+  background: rgba(255, 255, 255, 0);
+}
+#node-toggles {
+  float: right;
+  padding: 0.1em;
+}
+#edge-toggles {
+  float: right;
+  padding: 0.1em;
+}
+#graph-viewer {
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  height: 80%;
+  width: 60%;
+  background: rgba(255, 255, 255, 0);
+}
+#nodes-adder {
+  position: fixed;
+  top: 5em;
+  left: 0;
+  height: 20em;
+  width: 15%;
+  padding: 0.25em;
+  margin: 0.25em;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: solid rgb(55, 0, 255);
+}
+#edges-adder {
+  position: fixed;
+  top: 30em;
+  left: 0;
+  height: 25em;
+  width: 15%;
+  padding: 0.25em;
+  margin: 0.25em;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: solid rgb(55, 0, 255);
+}
+#hidden-nodes {
+  position: fixed;
+  top: 20%;
+  right: 0;
+  height: 70%;
+  width: 15%;
+  padding: 0.25em;
+  margin: 0.25em;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: solid rgb(55, 0, 255);
+}
+
+.node {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.5em;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  border-radius: 10px;
+}
+
+.node-class-1 {
+  border: 2px solid rgba(19, 230, 0, 0.8);
+  border-radius: 10px;
+}
+
+.node-class-2 {
+  border: 2px solid rgba(0, 81, 255, 0.8);
+  border-radius: 10px;
+}
+
+.node-isHidden {
+  background: rgba(255, 255, 255, 0.05);
+  float: left;
+  padding: 0.5em;
+  margin: 0.25em;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  border-radius: 10px;
+}
+
+/* Edit arrow styles by class */
+.edge-class-1 .svg {
+  fill: blue;
+}
+
+.edge-class-1 .svg-line {
+  stroke: blue;
+  stroke-dasharray: 8;
+}
+
+.edge-class-2 .svg {
+  fill: black;
+}
+
+.edge-class-2 .svg-line {
+  stroke: black;
+}
+
+.edge-class-3 .svg {
+  fill: orange;
+}
+
+.edge-class-3 .svg-line {
+  stroke: orange;
+}
+
+/* Edit width of arrow line and text */
+.svg {
+  fill: black;
+  /* Black color by default for svg elems*/
+}
+
+.svg-line {
+  stroke: black;
+  stroke-width: 2;
+}
