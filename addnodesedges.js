@@ -88,28 +88,30 @@ function addNode(node) {
     window.nodes[id] = node;
 
     // Create html node element and add to graph viewer
-    const nodeHTML = `
-        <div id="${id}" class="node ${category}">
-            <div class="media">
-                <div class="media-content">
-                    <h5 class="title is-5">${id}</h5>
-                    ${text ? `<h6 class="subtitle is-6">${text}</h6>` : ""}
-                    <!-- <span class="tag is-link is-small">${category}</span> -->
-                </div>
-                <div class="media-right">
-                    <button class="button is-danger is-outlined is-rounded is-small hide-button">
-                        <span class="icon is-small">
-                            <i class="fas fa-eye-slash"></i>
-                        </span>
-                    </button>
-                </div>
+    var newNode = document.createElement("div");
+    newNode.id = id;
+    newNode.classList.add("node");
+    newNode.classList.add(category)
+    newNode.innerHTML = `
+        <div class="media">
+            <div class="media-content">
+                <h5 class="title is-5">${id}</h5>
+                ${text ? `<h6 class="subtitle is-6">${text}</h6>` : ""}
+                <!-- <span class="tag is-link is-small">${category}</span> -->
+            </div>
+            <div class="media-right">
+                <button class="button is-danger is-outlined is-rounded is-small hide-button">
+                    <span class="icon is-small">
+                        <i class="fas fa-eye-slash"></i>
+                    </span>
+                </button>
             </div>
         </div>
     `;
 
     // Append nodeHTML to graph viewer
-    document.getElementById("graph-viewer").innerHTML += nodeHTML;
-    $(".node").draggable(); // Make node boxes draggable with jQuery UI
+    document.getElementById("graph-viewer").appendChild(newNode);
+    $("#" + id).draggable(); // Make node boxes draggable with jQuery UI
 
     // Add node to edge source and destination select elems
     var srcSelectElem = document.getElementById('edge-src-node-id');
