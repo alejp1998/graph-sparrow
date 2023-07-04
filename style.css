@@ -25,7 +25,7 @@
   top: 5em;
   left: 0;
   height: 20em;
-  width: 15%;
+  width: 15em;
   padding: 0.25em;
   margin: 0.25em;
   z-index: 1;
@@ -37,19 +37,24 @@
   top: 30em;
   left: 0;
   height: 25em;
-  width: 15%;
+  width: 15em;
   padding: 0.25em;
   margin: 0.25em;
   z-index: 1;
   background: rgba(255, 255, 255, 0.7);
   border: solid rgb(55, 0, 255);
 }
+#reload-graph-layout {
+  position: fixed;
+  top: 12.5%;
+  right: 0.5em;
+}
 #hidden-nodes {
   position: fixed;
   top: 20%;
   right: 0;
   height: 70%;
-  width: 15%;
+  width: 15em;
   padding: 0.25em;
   margin: 0.25em;
   z-index: 1;
@@ -65,48 +70,51 @@
   border-radius: 10px;
 }
 
-.node-class-1 {
+.node-isHidden {
+  background: rgba(255, 255, 255, 0.05);
+  float: right;
+  padding: 0.5em;
+  margin: 0.25em;
+}
+
+.green-node {
   border: 2px solid rgba(19, 230, 0, 0.8);
   border-radius: 10px;
 }
 
-.node-class-2 {
+.blue-node {
   border: 2px solid rgba(0, 81, 255, 0.8);
   border-radius: 10px;
 }
 
-.node-isHidden {
-  background: rgba(255, 255, 255, 0.05);
-  float: left;
-  padding: 0.5em;
-  margin: 0.25em;
-  border: 2px solid rgba(0, 0, 0, 0.8);
+.red-node {
+  border: 2px solid rgba(204, 1, 1, 0.8);
   border-radius: 10px;
 }
 
 /* Edit arrow styles by class */
-.edge-class-1 .svg {
+.blue-dashed-edge .svg {
   fill: blue;
 }
 
-.edge-class-1 .svg-line {
+.blue-dashed-edge .svg-line {
   stroke: blue;
   stroke-dasharray: 8;
 }
 
-.edge-class-2 .svg {
-  fill: black;
+.purple-edge .svg {
+  fill: purple;
 }
 
-.edge-class-2 .svg-line {
-  stroke: black;
+.purple-edge .svg-line {
+  stroke: purple;
 }
 
-.edge-class-3 .svg {
+.orange-edge .svg {
   fill: orange;
 }
 
-.edge-class-3 .svg-line {
+.orange-edge .svg-line {
   stroke: orange;
 }
 

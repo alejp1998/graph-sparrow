@@ -14,71 +14,87 @@
 
     <script>
         $(document).ready(function () {
-            $(".node").draggable(); // Make node boxes draggable with jQuery UI
-
             // Add four nodes
             const node1 = {
                 id: "node-1",
-                category: "node-class-1",
+                category: "green-node",
                 text: "i am node 1"
             };
             const node2 = {
                 id: "node-2",
-                category: "node-class-2",
+                category: "blue-node",
                 text: "i am node 2"
             };
             const node3 = {
                 id: "node-3",
-                category: "node-class-1",
+                category: "green-node",
                 text: "i am node 3"
             };
             const node4 = {
                 id: "node-4",
-                category: "node-class-2",
+                category: "blue-node",
                 text: "i am node 4"
             };
+            const node5 = {
+                id: "node-5",
+                category: "red-node",
+                text: "i am node 5"
+            }
 
             addNode(node1);
             addNode(node2);
             addNode(node3);
             addNode(node4);
+            addNode(node5);
 
             // Add edges between nodes
             const edge1 = {
                 srcNodeId: "node-1",
                 dstNodeId: "node-2",
-                category: "edge-class-1",
+                category: "blue-dashed-edge",
                 text: "edge from node-1 to node-2"
             }
             const edge2 = {
                 srcNodeId: "node-2",
                 dstNodeId: "node-3",
-                category: "edge-class-2",
+                category: "purple-edge",
                 text: "edge from node-2 to node-3"
             }
             const edge3 = {
                 srcNodeId: "node-3",
                 dstNodeId: "node-4",
-                category: "edge-class-1",
+                category: "blue-dashed-edge",
                 text: "edge from node-3 to node-4"
             }
             const edge4 = {
                 srcNodeId: "node-4",
                 dstNodeId: "node-1",
-                category: "edge-class-2",
-                text: "edge from node-1 to node-2"
+                category: "purple-edge",
+                text: "edge from node-4 to node-1"
             }
             const edge5 = {
                 srcNodeId: "node-1",
                 dstNodeId: "node-3",
-                category: "edge-class-3",
+                category: "orange-edge",
                 text: "edge from node-1 to node-3"
             }
             const edge6 = {
                 srcNodeId: "node-2",
                 dstNodeId: "node-4",
-                category: "edge-class-3",
+                category: "orange-edge",
                 text: "edge from node-2 to node-4"
+            }
+            const edge7 = {
+                srcNodeId: "node-2",
+                dstNodeId: "node-5",
+                category: "blue-dashed-edge",
+                text: "edge from node-2 to node-5"
+            }
+            const edge8 = {
+                srcNodeId: "node-5",
+                dstNodeId: "node-3",
+                category: "orange-edge",
+                text: "edge from node-5 to node-3"
             }
 
             addEdge(edge1);
@@ -87,20 +103,18 @@
             addEdge(edge4);
             addEdge(edge5);
             addEdge(edge6);
+            addEdge(edge7);
+            addEdge(edge8);
 
-            var arrows = $("arrow, inner");
-            setInterval(function () {
-                arrows.arrows("update");
-            }, 100);
+            // Initial graph layout load
+            reloadGraphLayout();
         });
     </script>
 </head>
 
 <body>
     <div id="graph-menu">
-        <h3 class="title is-4" style="float: left; margin: 0.3em;">graph-sparrow by alejp1998</h3>
-        <button id="reload-graph-layout" class="button is-link is-light"
-            style="float: left; margin: 0.1em">Reshuffle</button>
+        <h3 class="title is-3" style="float: left; margin: 0.2em;">graph-sparrow</h3>
 
         <div id="node-toggles">
             <h3 class="title is-5" style="display: inline; margin: 0.5em;">Node Toggles</h5>
@@ -112,6 +126,12 @@
     </div>
 
     <div id="nodes-adder">
+        <button id="add-node" class="button is-link is-outlined" style="float:right;">
+            <span>Add</span>
+            <span class="icon is-small">
+                <i class="fas fa-plus"></i>
+            </span>
+        </button>
         <h3 class="title is-5">Add a node</h3>
 
         <div class="field">
@@ -124,7 +144,10 @@
         <div class="field">
             <label class="label">Node class</label>
             <div class="control">
-                <input id="node-class" class="input" type="text" placeholder="Node shared class">
+                <div class="select">
+                    <select id="node-class">
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -137,6 +160,12 @@
     </div>
 
     <div id="edges-adder">
+        <button id="add-edge" class="button is-link is-outlined" style="float:right;">
+            <span>Add</span>
+            <span class="icon is-small">
+                <i class="fas fa-plus"></i>
+            </span>
+        </button>
         <h3 class="title is-5">Add an edge</h3>
 
         <div class="field">
@@ -144,8 +173,6 @@
             <div class="control">
                 <div class="select">
                     <select id="edge-src-node-id">
-                        <option>node-1</option>
-                        <option>node-2</option>
                     </select>
                 </div>
             </div>
@@ -156,8 +183,6 @@
             <div class="control">
                 <div class="select">
                     <select id="edge-dst-node-id">
-                        <option>node-1</option>
-                        <option>node-2</option>
                     </select>
                 </div>
             </div>
@@ -166,7 +191,10 @@
         <div class="field">
             <label class="label">Edge class</label>
             <div class="control">
-                <input id="edge-class" class="input" type="text" placeholder="Edge shared class">
+                <div class="select">
+                    <select id="edge-class">
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -178,11 +206,14 @@
         </div>
     </div>
 
+    <button id="reload-graph-layout" class="button is-warning is-large">Reshuffle</button>
+
     <div id="hidden-nodes">
         <h3 class="title is-5" style="float: right; margin: 0.3em;">Hidden Nodes</h3>
     </div>
 
-    <div id="graph-viewer"></div>
+    <div id="graph-viewer">
+    </div>
 
     <div id="svg-arrows"></div>
 

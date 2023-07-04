@@ -1,8 +1,7 @@
 function nodesToggle(label, hide) {
   // Iterate through window nodes
   for (const [, node] of Object.entries(window.nodes)) {
-    const { category, isConn, isHidden } = node;
-    if (!isConn) continue;
+    const { category, isHidden } = node;
     if (!(label === category)) continue;
     if (hide === isHidden) continue;
 
@@ -38,12 +37,12 @@ document.getElementById("node-toggles").addEventListener("click", function (e) {
   if (e.target.closest(".node-toggle-hide")) {
     // Get the pressed hide button
     const button = e.target.closest(".node-toggle-hide");
-    const label = button.id.split("-")[0];
+    const label = button.id.slice(0, button.id.length - 7);
     nodesToggle(label, true);
   } else if (e.target.closest(".node-toggle-show")) {
     // Get the pressed show button
     const button = e.target.closest(".node-toggle-show");
-    const label = button.id.split("-")[0];
+    const label = button.id.slice(0, button.id.length - 7);
     nodesToggle(label, false);
   }
 });
@@ -53,12 +52,12 @@ document.getElementById("edge-toggles").addEventListener("click", function (e) {
   if (e.target.closest(".edge-toggle-hide")) {
     // Get the pressed hide button
     const button = e.target.closest(".edge-toggle-hide");
-    const label = button.id.split("-")[0] + "-" + button.id.split("-")[1];
+    const label = button.id.slice(0, button.id.length - 7);
     edgesToggle(label, true);
   } else if (e.target.closest(".edge-toggle-show")) {
     // Get the pressed show button
     const button = e.target.closest(".edge-toggle-show");
-    const label = button.id.split("-")[0] + "-" + button.id.split("-")[1];
+    const label = button.id.slice(0, button.id.length - 7);
     edgesToggle(label, false);
   }
 });

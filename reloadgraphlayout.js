@@ -1,6 +1,3 @@
-// Initial graph layout load
-reloadGraphLayout();
-
 // Get the "Reload" button element
 var reloadButton = document.getElementById("reload-graph-layout");
 
