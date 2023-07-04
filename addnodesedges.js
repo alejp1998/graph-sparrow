@@ -1,5 +1,3 @@
-// Given a proper node or edge object, add a node or edge to the graph viewer
-
 // Initialize window nodes and edges
 window.nodes = {};
 window.edges = [];
@@ -111,7 +109,7 @@ function addNode(node) {
 
     // Append nodeHTML to graph viewer
     document.getElementById("graph-viewer").innerHTML += nodeHTML;
-    $("#" + id).draggable(); // Make node boxes draggable with jQuery UI
+    $(".node").draggable(); // Make node boxes draggable with jQuery UI
 
     // Add node to edge source and destination select elems
     var srcSelectElem = document.getElementById('edge-src-node-id');
@@ -172,7 +170,7 @@ function addEdge(edge) {
     $().arrows({
         within: '#svg-arrows',
         id: edge.id,
-        class: category,
+        category: category,
         name: text,
         from: '#' + srcNodeId,
         to: '#' + dstNodeId
@@ -181,7 +179,7 @@ function addEdge(edge) {
     var newArrow = $("#" + edge.id);
     setInterval(function () {
         newArrow.arrows("update");
-    }, 100);
+    }, 50);
 
     // Add new edge toggle if new category
     if ((!window.shownEdgesCategoryCount[category]) && (window.shownEdgesCategoryCount[category] !== 0)) {

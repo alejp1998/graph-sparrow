@@ -10,8 +10,6 @@
     <script src="jquery.arrows.js"></script>
     <script src="springy.js"></script>
 
-    <link rel="stylesheet" href="style.css" />
-
     <script>
         $(document).ready(function () {
             // Add four nodes
@@ -110,11 +108,13 @@
             reloadGraphLayout();
         });
     </script>
+
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
     <div id="graph-menu">
-        <h3 class="title is-3" style="float: left; margin: 0.2em;">graph-sparrow</h3>
+        <h3 class="title is-3" style="float: left; margin: 0.1em;">graph-sparrow</h3>
 
         <div id="node-toggles">
             <h3 class="title is-5" style="display: inline; margin: 0.5em;">Node Toggles</h5>
@@ -216,18 +216,6 @@
     </div>
 
     <div id="svg-arrows"></div>
-
-    <script>
-        // Wait for document to be loaded
-        $(document).ready(function () {
-            // Load arrows and update them periodically
-            $(".node").draggable()
-            var arrows = $("arrow, inner");
-            setInterval(function () {
-                arrows.arrows("update");
-            }, 50);
-        });
-    </script>
 
     <script src="addnodesedges.js"></script>
     <script src="hideshownodes.js"></script>

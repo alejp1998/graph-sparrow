@@ -28,6 +28,7 @@
           to: this,
           id: "arrow-" + n++,
           within: "body",
+          class: options.category
         },
         options
       );
@@ -95,7 +96,7 @@
     // Create arrow's associated data
     var data = {
       id: options.id,
-      class: options.class,
+      category: options.category,
       name: options.name,
       node_from: $(nodes[0]),
       node_to: $(nodes[1]),
