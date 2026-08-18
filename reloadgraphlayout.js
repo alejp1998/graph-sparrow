@@ -1,14 +1,16 @@
+/* global Springy, hideNode */
+
 // Get the "Reload" button element
 var reloadButton = document.getElementById("reload-graph-layout");
 
 // Check if a node is connected to non-hidden nodes
 function isNodeConnectedToNonHidden(nodeId) {
-  for (const edge of edges) {
+  for (const edge of window.edges) {
     if (edge.isHidden) continue;
-    if (edge.hasOwnProperty("srcNodeId") && edge.srcNodeId === nodeId) {
+    if (edge.hasOwnProperty.call(edge, "srcNodeId") && edge.srcNodeId === nodeId) {
       if (!window.nodes[edge.dstNodeId].isHidden) return true;
     }
-    if (edge.hasOwnProperty("dstNodeId") && edge.dstNodeId === nodeId) {
+    if (edge.hasOwnProperty.call(edge, "dstNodeId") && edge.dstNodeId === nodeId) {
       if (!window.nodes[edge.srcNodeId].isHidden) return true;
     }
   }
@@ -17,7 +19,6 @@ function isNodeConnectedToNonHidden(nodeId) {
 
 // Your function to be executed when the button is pressed
 function reloadGraphLayout() {
-  let nodeIndex;
   let node;
 
   console.log("Reloading graph layout...");
@@ -51,6 +52,11 @@ function reloadGraphLayout() {
   );
   layout.start();
 
+  // Run the force-directed simulation synchronously for a deterministic layout
+  for (var tick = 0; tick < 400; tick++) {
+    layout.tick(0.02);
+  }
+
   // Get min position values
   let [minX, minY] = [Infinity, Infinity];
   let [maxX, maxY] = [-Infinity, -Infinity];
@@ -67,7 +73,6 @@ function reloadGraphLayout() {
     if (window.nodes[nodeId].isHidden) continue;
 
     // Get node html element
-    nodeIndex = window.nodes[nodeId].index;
     node = document.getElementById(nodeId);
 
     // Compute new position and assign to html element

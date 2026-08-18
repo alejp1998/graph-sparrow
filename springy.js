@@ -143,7 +143,14 @@ Graph.prototype.removeEdge = function (edge) {
 
 // -----------
 var Layout = (Springy.Layout = {});
-Layout.ForceDirected = function (graph, stiffness, repulsion, damping, minEnergyThreshold, maxSpeed) {
+Layout.ForceDirected = function (
+  graph,
+  stiffness,
+  repulsion,
+  damping,
+  minEnergyThreshold,
+  maxSpeed
+) {
   this.graph = graph;
   this.stiffness = stiffness; // spring stiffness constant
   this.repulsion = repulsion; // repulsion constant
@@ -178,10 +185,14 @@ Layout.ForceDirected.prototype.spring = function (edge) {
     }, this);
 
     if (existingSpring !== false) {
-      return new Layout.ForceDirected.Spring(existingSpring.point1, existingSpring.point2, 0.0, 0.0);
+      return new Layout.ForceDirected.Spring(
+        existingSpring.point1,
+        existingSpring.point2,
+        0.0,
+        0.0
+      );
     }
 
-    var to = this.graph.getEdges(edge.target, edge.source);
     from.forEach(function (e) {
       if (existingSpring === false && e.id in this.edgeSprings) {
         existingSpring = this.edgeSprings[e.id];
@@ -189,7 +200,12 @@ Layout.ForceDirected.prototype.spring = function (edge) {
     }, this);
 
     if (existingSpring !== false) {
-      return new Layout.ForceDirected.Spring(existingSpring.point2, existingSpring.point1, 0.0, 0.0);
+      return new Layout.ForceDirected.Spring(
+        existingSpring.point2,
+        existingSpring.point1,
+        0.0,
+        0.0
+      );
     }
 
     this.edgeSprings[edge.id] = new Layout.ForceDirected.Spring(
@@ -284,7 +300,7 @@ Layout.ForceDirected.prototype.updatePosition = function (timestep) {
 };
 
 // Calculate the total kinetic energy of the system
-Layout.ForceDirected.prototype.totalEnergy = function (timestep) {
+Layout.ForceDirected.prototype.totalEnergy = function () {
   var energy = 0.0;
   this.eachNode(function (node, point) {
     var speed = point.v.magnitude();
@@ -428,7 +444,7 @@ Layout.ForceDirected.Spring = function (point1, point2, length, k) {
 
 var isEmpty = function (obj) {
   for (var k in obj) {
-    if (obj.hasOwnProperty(k)) {
+    if (obj.hasOwnProperty.call(k)) {
       return false;
     }
   }

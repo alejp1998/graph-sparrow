@@ -1,225 +1,218 @@
-<!DOCTYPE html>
-
-<head>
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
     <meta charset="utf-8" />
-    <title>Graph Sparrow</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.3/css/bulma.min.css">
-    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graph Sparrow — Interactive Graph Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
     <script src="jquery.arrows.js"></script>
     <script src="springy.js"></script>
-
-    <script>
-        $(document).ready(function () {
-
-            // Add four nodes
-            const node1 = {
-                id: "node-1",
-                category: "green-node",
-                text: "i am node 1"
-            };
-            const node2 = {
-                id: "node-2",
-                category: "blue-node",
-                text: "i am node 2"
-            };
-            const node3 = {
-                id: "node-3",
-                category: "green-node",
-                text: "i am node 3"
-            };
-            const node4 = {
-                id: "node-4",
-                category: "blue-node",
-                text: "i am node 4"
-            };
-            const node5 = {
-                id: "node-5",
-                category: "red-node",
-                text: "i am node 5"
-            }
-
-            addNode(node1);
-            addNode(node2);
-            addNode(node3);
-            addNode(node4);
-            addNode(node5);
-
-            // Add edges between nodes
-            const edge1 = {
-                srcNodeId: "node-1",
-                dstNodeId: "node-2",
-                category: "blue-dashed-edge",
-                text: "edge from node-1 to node-2"
-            }
-            const edge2 = {
-                srcNodeId: "node-2",
-                dstNodeId: "node-3",
-                category: "purple-edge",
-                text: "edge from node-2 to node-3"
-            }
-            const edge3 = {
-                srcNodeId: "node-3",
-                dstNodeId: "node-4",
-                category: "blue-dashed-edge",
-                text: "edge from node-3 to node-4"
-            }
-            const edge4 = {
-                srcNodeId: "node-4",
-                dstNodeId: "node-1",
-                category: "purple-edge",
-                text: "edge from node-4 to node-1"
-            }
-            const edge5 = {
-                srcNodeId: "node-1",
-                dstNodeId: "node-3",
-                category: "orange-edge",
-                text: "edge from node-1 to node-3"
-            }
-            const edge6 = {
-                srcNodeId: "node-2",
-                dstNodeId: "node-4",
-                category: "orange-edge",
-                text: "edge from node-2 to node-4"
-            }
-            const edge7 = {
-                srcNodeId: "node-2",
-                dstNodeId: "node-5",
-                category: "blue-dashed-edge",
-                text: "edge from node-2 to node-5"
-            }
-            const edge8 = {
-                srcNodeId: "node-5",
-                dstNodeId: "node-3",
-                category: "orange-edge",
-                text: "edge from node-5 to node-3"
-            }
-
-            addEdge(edge1);
-            addEdge(edge2);
-            addEdge(edge3);
-            addEdge(edge4);
-            addEdge(edge5);
-            addEdge(edge6);
-            addEdge(edge7);
-            addEdge(edge8);
-
-            // Initial graph layout load
-            reloadGraphLayout();
-        });
-    </script>
-
-    <link rel="stylesheet" href="style.css" />
-</head>
-
-<body>
-    <div id="graph-menu">
-        <h3 class="title is-3" style="float: left; margin: 0.1em;">graph-sparrow</h3>
-
-        <div id="node-toggles">
-            <h3 class="title is-5" style="display: inline; margin: 0.5em;">Node Toggles</h5>
-        </div>
-
-        <div id="edge-toggles">
-            <h3 class="title is-5" style="display: inline; margin: 0.5em;">Edge Toggles</h5>
-        </div>
-    </div>
-
-    <div id="nodes-adder">
-        <button id="add-node" class="button is-link is-outlined" style="float:right;">
-            <span>Add</span>
-            <span class="icon is-small">
-                <i class="fas fa-plus"></i>
-            </span>
-        </button>
-        <h3 class="title is-5">Add a node</h3>
-
-        <div class="field">
-            <label class="label">Node id</label>
-            <div class="control">
-                <input id="node-id" class="input" type="text" placeholder="Node unique identifier">
-            </div>
-        </div>
-
-        <div class="field">
-            <label class="label">Node class</label>
-            <div class="control">
-                <div class="select">
-                    <select id="node-class">
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label class="label">Node text</label>
-            <div class="control">
-                <input id="node-text" class="input" type="text" placeholder="Text shown in node">
-            </div>
-        </div>
-    </div>
-
-    <div id="edges-adder">
-        <button id="add-edge" class="button is-link is-outlined" style="float:right;">
-            <span>Add</span>
-            <span class="icon is-small">
-                <i class="fas fa-plus"></i>
-            </span>
-        </button>
-        <h3 class="title is-5">Add an edge</h3>
-
-        <div class="field">
-            <label class="label">Source node id</label>
-            <div class="control">
-                <div class="select">
-                    <select id="edge-src-node-id">
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label class="label">Destination node id</label>
-            <div class="control">
-                <div class="select">
-                    <select id="edge-dst-node-id">
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label class="label">Edge class</label>
-            <div class="control">
-                <div class="select">
-                    <select id="edge-class">
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label class="label">Edge text</label>
-            <div class="control">
-                <input id="edge-text" class="input" type="text" placeholder="Text shown on edge">
-            </div>
-        </div>
-    </div>
-
-    <button id="reload-graph-layout" class="button is-warning is-large">Reshuffle</button>
-
-    <div id="hidden-nodes">
-        <h3 class="title is-5" style="float: right; margin: 0.3em;">Hidden Nodes</h3>
-    </div>
-
-    <div id="graph-viewer">
-    </div>
-
-    <div id="svg-arrows"></div>
-
     <script src="addnodesedges.js"></script>
     <script src="hideshownodes.js"></script>
     <script src="edgenodetoggles.js"></script>
     <script src="reloadgraphlayout.js"></script>
-</body>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="brand-logo">🕸️</div>
+        <div>
+          <div class="brand-title">Graph Sparrow</div>
+          <div class="brand-sub">
+            Interactive graph explorer · force-directed layout · jQuery Arrows
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" id="reload-graph-layout">🎯 Re-layout</button>
+        <button class="btn" id="export-graph">⬇ Export JSON</button>
+        <button class="btn" id="import-graph">⬆ Import JSON</button>
+        <button class="btn" id="btn-theme">☀️/🌙 Theme</button>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-title">➕ Add Node</div>
+          <input id="node-id" placeholder="unique id" />
+          <input id="node-text" placeholder="label (optional)" />
+          <select id="node-class">
+            <option value="green-node">green-node</option>
+            <option value="blue-node">blue-node</option>
+            <option value="red-node">red-node</option>
+            <option value="cyan-node">cyan-node</option>
+            <option value="amber-node">amber-node</option>
+          </select>
+          <button class="btn btn-add" id="add-node">Add node</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">🔗 Add Edge</div>
+          <select id="edge-src-node-id"></select>
+          <select id="edge-dst-node-id"></select>
+          <select id="edge-class">
+            <option value="blue-dashed-edge">blue-dashed-edge</option>
+            <option value="purple-edge">purple-edge</option>
+            <option value="orange-edge">orange-edge</option>
+            <option value="green-edge">green-edge</option>
+            <option value="rose-edge">rose-edge</option>
+          </select>
+          <input id="edge-text" placeholder="label (optional)" />
+          <button class="btn btn-add" id="add-edge">Add edge</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">🧲 Physics</div>
+          <label class="slider-label">Stiffness <span id="stiffness-val">500</span></label>
+          <input type="range" id="stiffness" min="100" max="1200" step="50" value="500" />
+          <label class="slider-label">Repulsion <span id="repulsion-val">2000</span></label>
+          <input type="range" id="repulsion" min="500" max="5000" step="100" value="2000" />
+          <label class="slider-label">Damping <span id="damping-val">0.5</span></label>
+          <input type="range" id="damping" min="0.1" max="0.9" step="0.05" value="0.5" />
+        </section>
+
+        <section class="panel" id="node-toggles-panel">
+          <div class="panel-title">👁️ Node Categories</div>
+          <div id="node-toggles"></div>
+        </section>
+
+        <section class="panel" id="edge-toggles-panel">
+          <div class="panel-title">👁️ Edge Categories</div>
+          <div id="edge-toggles"></div>
+        </section>
+      </aside>
+
+      <section class="graph-stage">
+        <div id="svg-arrows"></div>
+        <div id="graph-viewer"></div>
+        <div class="hint">drag nodes · toggle categories · re-layout with spring physics</div>
+      </section>
+    </main>
+
+    <script>
+      $(document).ready(function () {
+        // Seed an example graph
+        [
+          { id: "sensor-1", category: "cyan-node", text: "Temp sensor" },
+          { id: "sensor-2", category: "cyan-node", text: "Humidity sensor" },
+          { id: "edge-gw", category: "blue-node", text: "Edge gateway" },
+          { id: "cloud", category: "purple-node", text: "Cloud broker" },
+          { id: "dt", category: "green-node", text: "Digital Twin" },
+        ].forEach(addNode);
+
+        [
+          {
+            srcNodeId: "sensor-1",
+            dstNodeId: "edge-gw",
+            category: "blue-dashed-edge",
+            text: "MQTT pub",
+          },
+          {
+            srcNodeId: "sensor-2",
+            dstNodeId: "edge-gw",
+            category: "blue-dashed-edge",
+            text: "MQTT pub",
+          },
+          {
+            srcNodeId: "edge-gw",
+            dstNodeId: "cloud",
+            category: "purple-edge",
+            text: "MQTT bridge",
+          },
+          { srcNodeId: "cloud", dstNodeId: "dt", category: "green-edge", text: "state sync" },
+          { srcNodeId: "dt", dstNodeId: "sensor-1", category: "orange-edge", text: "control" },
+        ].forEach(addEdge);
+
+        // Node / edge add buttons
+        $("#add-node").on("click", function () {
+          var id = $("#node-id").val().trim();
+          if (!id) return alert("Node id is empty! Write a unique node id.");
+          if (window.nodes[id]) return alert("Node id already exists!");
+          addNode({
+            id: id,
+            category: $("#node-class").val(),
+            text: $("#node-text").val(),
+          });
+          $("#node-id").val("");
+          $("#node-text").val("");
+        });
+
+        $("#add-edge").on("click", function () {
+          var src = $("#edge-src-node-id").val();
+          var dst = $("#edge-dst-node-id").val();
+          if (!src || !dst) return alert("Both endpoints are required.");
+          if (src === dst) return alert("Source and destination must differ.");
+          if (
+            window.edges.some(function (e) {
+              return e.id === src + "-" + dst || e.id === dst + "-" + src;
+            })
+          ) {
+            return alert("Edge already exists!");
+          }
+          addEdge({
+            srcNodeId: src,
+            dstNodeId: dst,
+            category: $("#edge-class").val(),
+            text: $("#edge-text").val(),
+          });
+          $("#edge-text").val("");
+        });
+
+        // Export / import
+        $("#export-graph").on("click", function () {
+          var blob = new Blob([exportGraph()], { type: "application/json" });
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "graph-sparrow-export.json";
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
+
+        $("#import-graph").on("click", function () {
+          var input = document.createElement("input");
+          input.type = "file";
+          input.accept = "application/json";
+          input.onchange = function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function () {
+              try {
+                importGraph(reader.result);
+                alert("Graph imported successfully!");
+              } catch (err) {
+                alert("Invalid graph JSON: " + err.message);
+              }
+            };
+            reader.readAsText(file);
+          };
+          input.click();
+        });
+
+        // Physics sliders
+        ["stiffness", "repulsion", "damping"].forEach(function (key) {
+          $("#" + key).on("input", function () {
+            $("#" + key + "-val").text($(this).val());
+          });
+        });
+        window.springParams = { stiffness: 500, repulsion: 2000, damping: 0.5 };
+
+        // Theme toggle
+        $("#btn-theme").on("click", function () {
+          var next =
+            document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+        });
+      });
+    </script>
+  </body>
+</html>

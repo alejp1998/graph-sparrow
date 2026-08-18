@@ -1,3 +1,5 @@
+/* global hideNode, showNode, hideEdge, showEdge */
+
 function nodesToggle(label, hide) {
   // Iterate through window nodes
   for (const [, node] of Object.entries(window.nodes)) {

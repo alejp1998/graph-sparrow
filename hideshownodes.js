@@ -6,7 +6,7 @@ window.shownEdgesCategoryCount = getShownEdgesCategoryCount();
 function getShownNodesCategoryCount() {
   let shownNodesCategoryCount = {};
 
-  for (const [nodeId, node] of Object.entries(window.nodes)) {
+  for (const [, node] of Object.entries(window.nodes)) {
     if (!node.isHidden) {
       if (!shownNodesCategoryCount[node.category]) shownNodesCategoryCount[node.category] = 0;
       shownNodesCategoryCount[node.category] += 1;
@@ -38,7 +38,7 @@ function hideEdge(edge) {
 
   // Mark the edge as hidden
   edge.isHidden = true;
-  shownEdgesCategoryCount[edge.category]--;
+  window.shownEdgesCategoryCount[edge.category]--;
 
   // Turn the hide/show nodes button of same category into show type if it was last node of the category
   if (window.shownEdgesCategoryCount[edge.category] === 0) {
@@ -68,7 +68,7 @@ function showEdge(edge) {
 
   // Mark the edge as hidden
   edge.isHidden = false;
-  shownEdgesCategoryCount[edge.category]++;
+  window.shownEdgesCategoryCount[edge.category]++;
 
   // Turn the hide/show nodes button of same category into hide type
   var button = document.getElementById(`${edge.category}-toggle`);
@@ -176,7 +176,7 @@ function showNode(node) {
 document.getElementById("graph-viewer").addEventListener("click", function (e) {
   if (e.target.closest(".hide-button")) {
     // Get the pressed hide button
-    button = e.target.closest(".hide-button");
+    const button = e.target.closest(".hide-button");
 
     // Get the node and remove it from graph viewer
     const nodeElem = button.closest(".node");
@@ -190,7 +190,7 @@ document.getElementById("graph-viewer").addEventListener("click", function (e) {
 document.getElementById("hidden-nodes").addEventListener("click", function (e) {
   if (e.target.closest(".show-button")) {
     // Get the pressed hide button
-    button = e.target.closest(".show-button");
+    const button = e.target.closest(".show-button");
 
     // Get the node and remove it from hidden nodes
     const nodeElem = button.closest(".node-isHidden");

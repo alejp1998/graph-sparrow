@@ -1,0 +1,47 @@
+{
+  "name": "graph-sparrow",
+  "version": "2.0.0",
+  "description": "Interactive graph visualization tool with force-directed layout, category toggles, graph JSON import/export, and jQuery Arrows connectors.",
+  "main": "addnodesedges.js",
+  "files": [
+    "addnodesedges.js",
+    "hideshownodes.js",
+    "edgenodetoggles.js",
+    "reloadgraphlayout.js",
+    "springy.js",
+    "jquery.arrows.js",
+    "index.html",
+    "style.css",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "lint": "eslint addnodesedges.js hideshownodes.js edgenodetoggles.js reloadgraphlayout.js springy.js",
+    "lint:fix": "eslint --fix addnodesedges.js hideshownodes.js edgenodetoggles.js reloadgraphlayout.js springy.js",
+    "format": "prettier --check \"*.js\" index.html style.css README.md",
+    "format:fix": "prettier --write \"*.js\" index.html style.css README.md",
+    "test": "node --test --test-force-exit tests/*.test.js",
+    "test:manual": "python3 -m http.server 8078 --directory .",
+    "check": "npm run lint && npm run format && npm test"
+  },
+  "keywords": [
+    "graph",
+    "visualization",
+    "force-directed",
+    "springy",
+    "jquery",
+    "svg",
+    "arrows",
+    "diagram"
+  ],
+  "author": "Alejandro Jarabo-Peñas",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jquery": "^4.0.0",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.3.3"
+  }
+}

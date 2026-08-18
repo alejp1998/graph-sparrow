@@ -1,18 +1,29 @@
-(function ($) {
-  /**
-   * jQuery Arrows Plugin
-   * This plugin provides functionality to create and manage arrow connections between HTML elements.
-   */
+/**
+ * jQuery Arrows Plugin v2.0.0
+ * Adds stylable, responsive SVG connector arrows with curved paths and text tags between DOM elements.
+ *
+ * @license MIT
+ * @author Alejandro Jarabo-Peñas
+ */
+(function (factory) {
+  if (typeof define === "function" && define.amd) {
+    define(["jquery"], factory);
+  } else if (typeof module === "object" && module.exports) {
+    module.exports = factory(require("jquery"));
+  } else {
+    factory(jQuery);
+  }
+})(function ($) {
+  "use strict";
 
-  
-  // Unique arrow number (in case id is not specified)
-  var n = 0;
-  
+  // Unique arrow counter
+  var counter = 0;
+
   /**
-   * arrows(options)
-   * Initializes the arrows plugin on the selected elements.
-   * @param {Object} options - Options for the arrows plugin.
-   * @returns {jQuery} The jQuery object.
+   * Main jQuery plugin entrypoint.
+   *
+   * @param {Object|string} options - Configuration object or command ('update' | 'remove')
+   * @returns {jQuery}
    */
   $.fn.arrows = function (options) {
     if (options === "update") {
@@ -20,100 +31,101 @@
     } else if (options === "remove") {
       return processArrows(destroy, this);
     } else {
-      // Merge the provided options with the default options
-      options = $.extend(
+      var opts = $.extend(
         true,
         {
           from: this,
           to: this,
-          id: "arrow-" + n++,
+          id: "arrow-" + counter++,
           within: "body",
-          class: options.category
+          class: "arrow-default",
+          name: "",
+          curvature: 0.0, // 0.0 = straight line, >0 = curved Bezier
+          strokeWidth: 2,
         },
         options
       );
 
-      // Create arrows between the specified elements
-      connect(options);
+      // Backward compatibility: v1.x used `category` for the CSS class
+      if (!options.class && options.category) {
+        opts.class = options.category;
+      }
 
+      connect(opts);
       return this;
     }
   };
 
   /**
-   * arrows event
-   * Custom event for the arrows plugin.
+   * Custom teardown event to clean up arrows when a node is removed from DOM.
    */
   $.event.special.arrows = {
-    teardown: function (namespaces) {
-      // Destroy the arrows when the element is being removed
+    teardown: function () {
       processArrows(destroy, $(this));
     },
   };
 
   /**
-   * connect(options)
-   * Creates arrows between elements based on the provided options.
-   * @param {object} options - Options for creating arrows.
+   * Connects source and target elements based on options.
    */
   var connect = function (options) {
     var end1 = $(options.from);
     var end2 = $(options.to);
     var within = $(options.within);
 
-    // Remove unnecessary options
     delete options.from;
     delete options.to;
     delete options.within;
 
-    $(":root").each(function () {
-      var container = within;
-      var done = new Array();
-      end1.each(function () {
-        var node = this;
-        done.push(this);
-        end2.not(done).each(function () {
-          // Create an arrow between two elements
-          createArrow(container, [node, this], options);
-        });
+    var container = within.length ? within : $("body");
+    var done = [];
+
+    end1.each(function () {
+      var node = this;
+      done.push(this);
+      end2.not(done).each(function () {
+        createArrow(container, [node, this], $.extend({}, options));
       });
     });
   };
 
   /**
-   * createArrow(container, nodes, options)
-   * Creates an arrow element between two nodes within a container.
-   * @param {Element} container - The container element to append the arrow to.
-   * @param {Element[]} nodes - An array of two node elements to connect.
-   * @param {object} options - Additional options for the arrow element.
+   * Creates an arrow element and appends its SVG canvas to the container.
    */
   var createArrow = function (container, nodes, options) {
-    // Create the arrow canvas element and append to it to the container
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" id="${options.id}-svg" class="svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>`;
-    const arrow = $("<arrow>", options).html(svgString);
+    var svgString =
+      '<svg xmlns="http://www.w3.org/2000/svg" id="' +
+      options.id +
+      '-svg" class="svg-arrow-canvas" style="position: absolute; pointer-events: none;"></svg>';
+    var arrow = $("<arrow>", {
+      id: options.id,
+      class: options.class,
+    }).html(svgString);
+
     container.append(arrow);
 
-    // Create arrow's associated data
     var data = {
       id: options.id,
-      category: options.category,
+      class: options.class,
       name: options.name,
+      curvature: options.curvature || 0.0,
       node_from: $(nodes[0]),
       node_to: $(nodes[1]),
-      nodes_dom: nodes
+      nodes_dom: nodes,
+      cache: undefined,
+      hidden: false,
+      unmodified: false,
     };
 
-    // Store the arrow data using jQuery's data() method
     $.data(arrow.get(0), "arrow", data);
     $.data(arrow.get(0), "arrows", [arrow.get(0)]);
 
-    // Update the arrows for the nodes
     for (var i = 0; i < 2; i++) {
-      var arrows = arrow.add($.data(nodes[i], "arrows")).get();
-      $.data(nodes[i], "arrows", arrows);
+      var existing = $.data(nodes[i], "arrows") || [];
+      var merged = $(existing).add(arrow).get();
+      $.data(nodes[i], "arrows", merged);
 
-      // Trigger the "arrows.arrows" event on the nodes
-      if (arrows.length == 1) {
+      if (merged.length === 1) {
         $(nodes[i]).on("arrows.arrows", false);
       }
     }
@@ -122,31 +134,32 @@
   };
 
   /**
-   * destroy(arrow)
-   * Destroys an arrow by removing it from the DOM and updating the arrows for the nodes.
-   * @param {Element} connection - The arrow element to destroy.
+   * Removes an arrow from the DOM and clears node references.
    */
   var destroy = function (arrow) {
-    var nodes = $.data(arrow, "arrow").nodes_dom;
+    var arrowData = $.data(arrow, "arrow");
+    if (!arrowData || !arrowData.nodes_dom) return;
+
+    var nodes = arrowData.nodes_dom;
     for (var i = 0; i < 2; i++) {
-      var arrows = $($.data(nodes[i], "arrows")).not(arrow).get();
-      $.data(nodes[i], "arrows", arrows);
+      var remaining = $($.data(nodes[i], "arrows")).not(arrow).get();
+      $.data(nodes[i], "arrows", remaining);
     }
     $(arrow).remove();
   };
 
   /**
-   * getState(data)
-   * Retrieves the state of an arrow by comparing the current and cached positions of the connected nodes.
-   * @param {object} data - The arrow data object containing node information and cached values.
-   * @returns {boolean} - Indicates whether the arrow state has been modified or not.
+   * Compares cached and live bounding rectangles of connected nodes.
    */
   var getState = function (data) {
-    // Get the bounding rectangles of the connected nodes
+    if (!data.nodes_dom[0] || !data.nodes_dom[1]) {
+      data.hidden = true;
+      return false;
+    }
+
     data.rect_from = data.nodes_dom[0].getBoundingClientRect();
     data.rect_to = data.nodes_dom[1].getBoundingClientRect();
 
-    // Cache the current positions and store previous positions in cached variable
     var cached = data.cache;
     data.cache = [
       data.rect_from.top,
@@ -159,175 +172,285 @@
       data.rect_to.left,
     ];
 
-    // Determine if the arrow is hidden based on node positions
+    // Check if either node is hidden / zero-sized
     data.hidden =
-      0 === (data.cache[0] | data.cache[1] | data.cache[2] | data.cache[3]) ||
-      0 === (data.cache[4] | data.cache[5] | data.cache[6] | data.cache[7]);
+      (data.cache[0] === 0 && data.cache[1] === 0 && data.cache[2] === 0 && data.cache[3] === 0) ||
+      (data.cache[4] === 0 && data.cache[5] === 0 && data.cache[6] === 0 && data.cache[7] === 0);
 
-    // Assume the arrow is unmodified until proven otherwise
-    data.unmodified = true;
-
-    // Check if the cached positions exist
     if (cached === undefined) {
-      return (data.unmodified = false);
+      data.unmodified = false;
+      return false;
     }
 
-    // Compare the cached positions with the current positions
+    data.unmodified = true;
     for (var i = 0; i < 8; i++) {
-      if (cached[i] !== data.cache[i]) {
-        return (data.unmodified = false);
+      if (Math.abs(cached[i] - data.cache[i]) > 0.5) {
+        data.unmodified = false;
+        break;
       }
     }
 
-    // The arrow state has not been modified
     return data.unmodified;
   };
 
-  // Calculate intersection of line from (x,y) to the center of a rectange defined by (minX,maxX,minY,maxY) with the border of the rectangle
+  /**
+   * Calculates the intersection point between a ray (from center to external point)
+   * and a rectangle border, with robust handling for vertical/horizontal alignment singularities.
+   */
   var pointOnRect = function (x, y, minX, minY, maxX, maxY) {
-    const midX = (minX + maxX) / 2;
-    const midY = (minY + maxY) / 2;
-    const m = (midY - y) / (midX - x);
+    var midX = (minX + maxX) / 2;
+    var midY = (minY + maxY) / 2;
+    var dx = midX - x;
+    var dy = midY - y;
 
-    if (x <= midX && minY <= m * (minX - x) + y && m * (minX - x) + y <= maxY)
-      return { x: minX, y: m * (minX - x) + y };
-    if (x >= midX && minY <= m * (maxX - x) + y && m * (maxX - x) + y <= maxY)
-      return { x: maxX, y: m * (maxX - x) + y };
-    if (y <= midY && minX <= (minY - y) / m + x && (minY - y) / m + x <= maxX)
-      return { x: (minY - y) / m + x, y: minY };
-    if (y >= midY && minX <= (maxY - y) / m + x && (maxY - y) / m + x <= maxX)
-      return { x: (maxY - y) / m + x, y: maxY };
-    if (x === midX && y === midY) return { x, y };
+    // Handle exact center coincidence
+    if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) {
+      return { x: midX, y: midY };
+    }
+
+    // Handle purely vertical alignment (dx == 0)
+    if (Math.abs(dx) < 1e-6) {
+      return {
+        x: midX,
+        y: y > midY ? maxY : minY,
+      };
+    }
+
+    // Handle purely horizontal alignment (dy == 0)
+    if (Math.abs(dy) < 1e-6) {
+      return {
+        x: x > midX ? maxX : minX,
+        y: midY,
+      };
+    }
+
+    var m = dy / dx;
+
+    // Left border
+    if (x <= midX) {
+      var yLeft = m * (minX - x) + y;
+      if (minY <= yLeft && yLeft <= maxY) {
+        return { x: minX, y: yLeft };
+      }
+    }
+
+    // Right border
+    if (x >= midX) {
+      var yRight = m * (maxX - x) + y;
+      if (minY <= yRight && yRight <= maxY) {
+        return { x: maxX, y: yRight };
+      }
+    }
+
+    // Top border
+    if (y <= midY) {
+      var xTop = (minY - y) / m + x;
+      if (minX <= xTop && xTop <= maxX) {
+        return { x: xTop, y: minY };
+      }
+    }
+
+    // Bottom border
+    if (y >= midY) {
+      var xBottom = (maxY - y) / m + x;
+      if (minX <= xBottom && xBottom <= maxX) {
+        return { x: xBottom, y: maxY };
+      }
+    }
+
+    return { x: midX, y: midY };
   };
 
-  // Modify canvas when updating arrows
+  /**
+   * Position and size the SVG canvas element.
+   */
   var modifyCanvas = function (id, minX, minY, width, height) {
     var svg = document.getElementById(id + "-svg");
-    svg.setAttribute("style", `position: absolute; top: ${minY}px; left: ${minX}px; z-index: -10;`);
+    if (!svg) return null;
+
+    svg.setAttribute(
+      "style",
+      "position: absolute; top: " +
+        minY +
+        "px; left: " +
+        minX +
+        "px; z-index: 1; pointer-events: none;"
+    );
     svg.setAttribute("width", width);
     svg.setAttribute("height", height);
     return svg;
   };
 
-  // Add triangle markers definition for arrow heads
+  /**
+   * Adds the SVG triangle marker arrowhead definition.
+   */
   var addTriangleMarkerDef = function (svg, id, className) {
     if (svg.querySelector("defs")) return;
-    // Add triangle marker definition to SVG
-    svg.innerHTML += `
-    <defs>
-      <marker id="${id}-triangle" class="${className}" viewBox="0 0 10 10" refX="10" refY="5"
-        markerUnits="strokeWidth" markerWidth="5" markerHeight="8" orient="auto">
-        <path class="svg-line-triangle" d="M 0 0 L 10 5 L 0 10"></path>
-      </marker>
-    </defs>
-  `;
+
+    var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    defs.innerHTML =
+      '<marker id="' +
+      id +
+      '-triangle" class="' +
+      (className || "") +
+      '" viewBox="0 0 10 10" refX="8" refY="5"' +
+      ' markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">' +
+      '<path class="svg-line-triangle" d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"></path>' +
+      "</marker>";
+    svg.appendChild(defs);
   };
 
-  // Add arrow line path
-  var addArrowLine = function (svg, id, x1, y1, x2, y2) {
-    // Remove previous arrow path if it exists
-    var prevLine = document.getElementById(id + "-svg" + "-line");
+  /**
+   * Generates a curved or straight SVG path.
+   */
+  var addArrowLine = function (svg, id, x1, y1, x2, y2, curvature) {
+    var prevLine = document.getElementById(id + "-svg-line");
     if (prevLine) prevLine.remove();
-    // Bezier curve parameters computation
-    var path = "M " + x1 + " " + y1 + " C " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + x2 + " " + y2;
-    // Add new line to svg
-    svg.innerHTML += `<path id="${id}-svg-line" class="svg-line" d="${path}" marker-end="url(#${id}-triangle)"></path>`;
+
+    var d;
+    if (!curvature || Math.abs(curvature) < 1e-4) {
+      d = "M " + x1 + " " + y1 + " L " + x2 + " " + y2;
+    } else {
+      // Calculate perpendicular offset for curved Bezier arch
+      var mx = (x1 + x2) / 2;
+      var my = (y1 + y2) / 2;
+      var dx = x2 - x1;
+      var dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var cx = mx - (dy / len) * curvature * 40;
+      var cy = my + (dx / len) * curvature * 40;
+      d = "M " + x1 + " " + y1 + " Q " + cx + " " + cy + " " + x2 + " " + y2;
+    }
+
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("id", id + "-svg-line");
+    path.setAttribute("class", "svg-line");
+    path.setAttribute("d", d);
+    path.setAttribute("marker-end", "url(#" + id + "-triangle)");
+    svg.appendChild(path);
   };
-  
-  // Add arrow name text
+
+  /**
+   * Adds the text label tag along the arrow path.
+   */
   var addArrowName = function (svg, id, name) {
     if (!name) return;
-    // Remove previous name text if it exists
-    var prevText = document.getElementById(id + "-svg" + "-text");
+
+    var prevText = document.getElementById(id + "-svg-text");
     if (prevText) prevText.remove();
-    // Add new name text to svg
-    svg.innerHTML += `<text id="${id}-svg-text" class="svg-text" dy="15px" text-anchor="middle" font-size="16px">
-      <textPath href="#${id}-svg-line" startOffset="50%">${name}</textPath>
-    </text>`;
+
+    var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("id", id + "-svg-text");
+    text.setAttribute("class", "svg-text");
+    text.setAttribute("dy", "-6px");
+    text.setAttribute("text-anchor", "middle");
+
+    var textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+    textPath.setAttribute("href", "#" + id + "-svg-line");
+    textPath.setAttribute("startOffset", "50%");
+    textPath.textContent = name;
+
+    text.appendChild(textPath);
+    svg.appendChild(text);
   };
 
-  /*
+  /**
+   * Draws the arrow elements inside the SVG canvas.
    */
-  var drawArrow = function (id, category, name, x1, y1, x2, y2) {
-    // Get arrow SVG canvas
+  var drawArrow = function (id, className, name, x1, y1, x2, y2, curvature) {
     var svg = document.getElementById(id + "-svg");
-    // Add triangle marker def if it doesn't exist already
-    addTriangleMarkerDef(svg, id, category);
-    // Update line conneciton path
-    addArrowLine(svg, id, x1, y1, x2, y2);
-    // Update name text path
+    if (!svg) return;
+
+    addTriangleMarkerDef(svg, id, className);
+    addArrowLine(svg, id, x1, y1, x2, y2, curvature);
     addArrowName(svg, id, name);
   };
 
   /**
-   * Updates the appearance of an arrow element based on its data.
-   * @param {HTMLElement} connection - The arrow element to update.
+   * Updates an arrow position and geometry.
    */
   var update = function (arrow) {
-    // Retrieve arrow data using jQuery's data() method
     var data = $.data(arrow, "arrow");
-    const { id, category, name } = data;
+    if (!data) return;
 
-    // Get the state of the data
     getState(data);
-
-    // If the data is unmodified or hidden, return without making any updates
     if (data.unmodified || data.hidden) return;
 
-    // Calculate center coordinates of from and to rectangles
-    const from_cx = (data.rect_from.left + data.rect_from.right) / 2;
-    const from_cy = (data.rect_from.bottom + data.rect_from.top) / 2;
-    const to_cx = (data.rect_to.left + data.rect_to.right) / 2;
-    const to_cy = (data.rect_to.bottom + data.rect_to.top) / 2;
+    var from_cx = (data.rect_from.left + data.rect_from.right) / 2 + window.scrollX;
+    var from_cy = (data.rect_from.bottom + data.rect_from.top) / 2 + window.scrollY;
+    var to_cx = (data.rect_to.left + data.rect_to.right) / 2 + window.scrollX;
+    var to_cy = (data.rect_to.bottom + data.rect_to.top) / 2 + window.scrollY;
 
-    // Modify size of svg canvas depending on location of from and to rectangles
-    // Increase width and height to prevent singularities when from and to rectangles are aligned in one of the axis
-    const PADDING = 20;
-    const minX = Math.min(from_cx, to_cx) - PADDING;
-    const minY = Math.min(from_cy, to_cy) - PADDING;
-    const width = Math.abs(from_cx - to_cx) + PADDING * 2;
-    const height = Math.abs(from_cy - to_cy) + PADDING * 2;
-    modifyCanvas(id, minX, minY, width, height);
+    var PADDING = 30;
+    var minX = Math.min(from_cx, to_cx) - PADDING;
+    var minY = Math.min(from_cy, to_cy) - PADDING;
+    var width = Math.abs(from_cx - to_cx) + PADDING * 2;
+    var height = Math.abs(from_cy - to_cy) + PADDING * 2;
 
-    // Compute intersections with the from and to rectangles
-    const to_int = pointOnRect(
+    var svg = modifyCanvas(data.id, minX, minY, width, height);
+    if (!svg) return;
+
+    var from_rect_doc = {
+      left: data.rect_from.left + window.scrollX,
+      right: data.rect_from.right + window.scrollX,
+      top: data.rect_from.top + window.scrollY,
+      bottom: data.rect_from.bottom + window.scrollY,
+    };
+
+    var to_rect_doc = {
+      left: data.rect_to.left + window.scrollX,
+      right: data.rect_to.right + window.scrollX,
+      top: data.rect_to.top + window.scrollY,
+      bottom: data.rect_to.bottom + window.scrollY,
+    };
+
+    var to_int = pointOnRect(
       from_cx,
       from_cy,
-      data.rect_to.left,
-      data.rect_to.top,
-      data.rect_to.right,
-      data.rect_to.bottom
-    );
-    const from_int = pointOnRect(
-      to_cx,
-      to_cy,
-      data.rect_from.left,
-      data.rect_from.top,
-      data.rect_from.right,
-      data.rect_from.bottom
+      to_rect_doc.left,
+      to_rect_doc.top,
+      to_rect_doc.right,
+      to_rect_doc.bottom
     );
 
-    // Draw the line connecting the intersections
-    drawArrow(id, category, name, from_int.x - minX, from_int.y - minY, to_int.x - minX, to_int.y - minY);
+    var from_int = pointOnRect(
+      to_cx,
+      to_cy,
+      from_rect_doc.left,
+      from_rect_doc.top,
+      from_rect_doc.right,
+      from_rect_doc.bottom
+    );
+
+    drawArrow(
+      data.id,
+      data.class,
+      data.name,
+      from_int.x - minX,
+      from_int.y - minY,
+      to_int.x - minX,
+      to_int.y - minY,
+      data.curvature
+    );
   };
 
   /**
-   * Process arrows by applying a given method to each arrow element.
-   * @param {function} method - The method to be applied to each arrow element.
-   * @param {jQuery} elements - The jQuery collection of elements containing arrows.
-   * @returns {jQuery} - The modified jQuery collection of elements.
+   * Helper to iterate over arrows and apply a method.
    */
   var processArrows = function (method, elements) {
     return elements.each(function () {
-      // Retrieve the arrows associated with the current element
       var arrows = $.data(this, "arrows");
-
-      // Check if arrows exist and apply the method to each arrow
-      if (arrows instanceof Array) {
+      if (Array.isArray(arrows)) {
         for (var i = 0, len = arrows.length; i < len; i++) {
-          method(arrows[i]);
+          if (arrows[i]) method(arrows[i]);
         }
       }
     });
   };
-})(jQuery);
+
+  // Expose pure functions for unit testing
+  $.arrows = {
+    pointOnRect: pointOnRect,
+    version: "2.0.0",
+  };
+});

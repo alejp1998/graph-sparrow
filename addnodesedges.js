@@ -1,207 +1,287 @@
+/* global hideNode */
+/**
+ * graph-sparrow — node & edge management module.
+ * Public API: addNode(node), addEdge(edge), removeNode(id), removeEdge(id),
+ * toggleNodeVisibility(id), toggleEdgeVisibility(id), exportGraph(), importGraph(json).
+ */
+
 // Initialize window nodes and edges
 window.nodes = {};
 window.edges = [];
 
-// Get the button element by its ID
-var addNodeButton = document.getElementById('add-node');
+// Shared category visibility counters (window-scoped, no implicit globals)
+window.shownNodesCategoryCount = {};
+window.shownEdgesCategoryCount = {};
 
-// Add an event listener for the 'click' event
-addNodeButton.addEventListener('click', function () {
-    // Get field values
-    const nodeId = document.getElementById('node-id').value;
-    const nodeClass = document.getElementById('node-class').value;
-    const nodeText = document.getElementById('node-text').value;
+/**
+ * Single global arrow-update loop.
+ * (Previously each edge spawned its own setInterval — a memory leak that
+ * kept firing 50ms callbacks forever, even after the edge was removed.)
+ */
+window.arrowLoop = setInterval(function () {
+  var arrows = document.querySelectorAll("arrow");
+  for (var i = 0; i < arrows.length; i++) {
+    var arrowEl = arrows[i];
+    if (arrowEl.arrows) arrowEl.arrows("update");
+  }
+}, 50);
 
-    // Check that the node id is not empty
-    if (nodeId === "") {
-        alert('The node id is empty! Write an unique node id.');
-        return;
-    }
-    // Check that the node id doesnt exist yet
-    if (window.nodes[nodeId]) {
-        alert('The node id already exists! Write an unique node id.');
-        return;
-    }
+// ---------------------------------------------------------------------------
+// DOM helpers
+// ---------------------------------------------------------------------------
 
-    // Reset values
-    document.getElementById('node-id').value = null;
-    document.getElementById('node-text').value = null;
-
-    // Otherwise add new node
-    const node = {
-        id: nodeId,
-        category: nodeClass,
-        text: nodeText
-    }
-    addNode(node);
-});
-
-// Get the button element by its ID
-var addEdgeButton = document.getElementById('add-edge');
-
-// Add an event listener for the 'click' event
-addEdgeButton.addEventListener('click', function () {
-    // Get field values
-    const edgeSrcNodeId = document.getElementById('edge-src-node-id').value;
-    const edgeDstNodeId = document.getElementById('edge-dst-node-id').value;
-    const edgeClass = document.getElementById('edge-class').value;
-    const edgeText = document.getElementById('edge-text').value;
-
-    // Check that src and dst node are different
-    if (edgeSrcNodeId === edgeDstNodeId) {
-        alert('The source and destination node ids must not match!');
-        return;
-    }
-    // Check that the edge id doesnt exist yet
-    for (const edge of window.edges) {
-        if ((edge.id === (edgeSrcNodeId + "-" + edgeDstNodeId)) || (edge.id === (edgeDstNodeId + "-" + edgeSrcNodeId))) {
-            alert('The edge already exists! Change srcNodeId or dstNodeId.');
-            return;
-        }
-    }
-
-    // Reset values
-    document.getElementById('edge-text').value = null;
-
-    // Otherwise add new node
-    const edge = {
-        srcNodeId: edgeSrcNodeId,
-        dstNodeId: edgeDstNodeId,
-        category: edgeClass,
-        text: edgeText
-    }
-    addEdge(edge);
-});
-
-/* Add node object
-node = {
-    id: "unique-node-id",
-    category: "shared-node-class-1",
-    text: "text to add to node" 
+function getGraphViewer() {
+  return document.getElementById("graph-viewer");
 }
-*/
+
+function getSelect(id) {
+  return document.getElementById(id);
+}
+
+function syncNodeOptions(nodeId) {
+  var srcSelect = getSelect("edge-src-node-id");
+  var dstSelect = getSelect("edge-dst-node-id");
+
+  [srcSelect, dstSelect].forEach(function (select) {
+    var option = document.createElement("option");
+    option.text = nodeId;
+    option.value = nodeId;
+    select.appendChild(option);
+  });
+}
+
+function syncClassOption(selectId, className) {
+  var select = getSelect(selectId);
+  var existing = Array.from(select.options).some(function (opt) {
+    return opt.value === className;
+  });
+  if (existing) return;
+
+  var option = document.createElement("option");
+  option.text = className;
+  option.value = className;
+  select.appendChild(option);
+}
+
+function syncNodeToggle(category) {
+  if (window.shownNodesCategoryCount[category] !== undefined) return;
+  window.shownNodesCategoryCount[category] = 0;
+
+  var container = document.getElementById("node-toggles");
+  if (!container) return;
+  var btn = document.createElement("button");
+  btn.id = category + "-toggle";
+  btn.className = "node-toggle-hide button is-danger is-outlined";
+  btn.innerHTML =
+    "<span>" +
+    category.toUpperCase() +
+    "</span>" +
+    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>';
+  // Note: click delegation handled in edgenodetoggles.js
+  container.appendChild(btn);
+}
+
+function syncEdgeToggle(category) {
+  if (window.shownEdgesCategoryCount[category] !== undefined) return;
+  window.shownEdgesCategoryCount[category] = 0;
+
+  var container = document.getElementById("edge-toggles");
+  if (!container) return;
+  var btn = document.createElement("button");
+  btn.id = category + "-toggle";
+  btn.className = "edge-toggle-hide button is-danger is-outlined";
+  btn.innerHTML =
+    "<span>" +
+    category.toUpperCase() +
+    "</span>" +
+    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>';
+  // Note: click delegation handled in edgenodetoggles.js
+  container.appendChild(btn);
+}
+
+// ---------------------------------------------------------------------------
+// Node / edge lifecycle
+// ---------------------------------------------------------------------------
+
+/**
+ * Add a node object:
+ * { id: "unique-node-id", category: "shared-class", text: "label" }
+ */
 function addNode(node) {
-    const { id, category, text } = node;
+  var id = node.id;
+  var category = node.category;
+  var text = node.text;
 
-    // Add node to window dictionary
-    node.isHidden = false;
-    window.nodes[id] = node;
+  node.isHidden = false;
+  window.nodes[id] = node;
 
-    // Create html node element and add to graph viewer
-    var newNode = document.createElement("div");
-    newNode.id = id;
-    newNode.classList.add("node");
-    newNode.classList.add(category)
-    newNode.innerHTML = `
-        <div class="media">
-            <div class="media-content">
-                <h5 class="title is-5">${id}</h5>
-                ${text ? `<h6 class="subtitle is-6">${text}</h6>` : ""}
-                <!-- <span class="tag is-link is-small">${category}</span> -->
-            </div>
-            <div class="media-right">
-                <button class="button is-danger is-outlined is-rounded is-small hide-button">
-                    <span class="icon is-small">
-                        <i class="fas fa-eye-slash"></i>
-                    </span>
-                </button>
-            </div>
-        </div>
-    `;
+  // Create the HTML node element
+  var newNode = document.createElement("div");
+  newNode.id = id;
+  newNode.classList.add("node");
+  if (category) newNode.classList.add(category);
+  newNode.innerHTML =
+    '<div class="media">' +
+    '<div class="media-content">' +
+    '<h5 class="title is-5">' +
+    id +
+    "</h5>" +
+    (text ? '<h6 class="subtitle is-6">' + text + "</h6>" : "") +
+    "</div>" +
+    '<div class="media-right">' +
+    '<button class="button is-danger is-outlined is-rounded is-small hide-button" title="Hide node">' +
+    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>' +
+    "</button>" +
+    "</div>" +
+    "</div>";
 
-    // Append nodeHTML to graph viewer
-    document.getElementById("graph-viewer").appendChild(newNode);
-    $("#" + id).draggable(); // Make node boxes draggable with jQuery UI
+  getGraphViewer().appendChild(newNode);
 
-    // Add node to edge source and destination select elems
-    var srcSelectElem = document.getElementById('edge-src-node-id');
-    var dstSelectElem = document.getElementById('edge-dst-node-id');
+  // Hide button behavior
+  newNode.querySelector(".hide-button").addEventListener("click", function () {
+    hideNode(window.nodes[id]);
+  });
 
-    // Create a new option element
-    var newSrcOption = document.createElement('option');
-    var newDstOption = document.createElement('option');
-    newSrcOption.text = id; // Set the text content of the option
-    newSrcOption.value = id; // Optionally, set the value of the option
-    newDstOption.text = id; // Set the text content of the option
-    newDstOption.value = id; // Optionally, set the value of the option
+  // Make draggable (jQuery UI, optional enhancement)
+  if ($.fn.draggable) {
+    $("#" + id).draggable({});
+  }
 
-    // Append the new option to the select element
-    srcSelectElem.appendChild(newSrcOption);
-    dstSelectElem.appendChild(newDstOption);
+  // Register in select dropdowns and category toggles
+  syncNodeOptions(id);
+  syncClassOption("node-class", category);
+  syncNodeToggle(category);
 
-    // Add new node toggle if new category
-    if ((!window.shownNodesCategoryCount[category]) && (window.shownNodesCategoryCount[category] !== 0)) {
-        const nodeToggleHTML = `
-            <button id="${category}-toggle" class="node-toggle-hide button is-danger is-outlined">
-                <span>${category.toUpperCase()}</span>
-                <span class="icon is-small"><i class="fas fa-eye-slash"></i></span>
-            </button>
-        `;
-        document.getElementById("node-toggles").innerHTML += nodeToggleHTML;
-
-        // Create new class option
-        var classSelectElem = document.getElementById('node-class');
-        var newClassOption = document.createElement('option');
-        newClassOption.text = category; // Set the text content of the option
-        newClassOption.value = category; // Optionally, set the value of the option
-        classSelectElem.appendChild(newClassOption);
-    }
-
-    // Increment shown nodes category count
-    if (!shownNodesCategoryCount[node.category]) shownNodesCategoryCount[node.category] = 0;
-    shownNodesCategoryCount[node.category] += 1;
-};
-
-/* Add edge object
-edge = {
-    srcNodeId: "unique-node-id-1",
-    dstNodeId: "unique-node-id-2",
-    category: "shared-edge-class-1",
-    text: "text to add to edge" 
+  window.shownNodesCategoryCount[category] = (window.shownNodesCategoryCount[category] || 0) + 1;
 }
-*/
+
+/**
+ * Add an edge object:
+ * { srcNodeId, dstNodeId, category, text }
+ */
 function addEdge(edge) {
-    const { srcNodeId, dstNodeId, category, text } = edge;
+  var srcNodeId = edge.srcNodeId;
+  var dstNodeId = edge.dstNodeId;
+  var category = edge.category;
+  var text = edge.text;
 
-    // Add edge to window list
-    edge.id = srcNodeId + "-" + dstNodeId;
-    edge.isHidden = false;
-    window.edges.push(edge);
+  edge.id = srcNodeId + "-" + dstNodeId;
+  edge.isHidden = false;
+  window.edges.push(edge);
 
-    // Create jQuery Arrows edge
-    $().arrows({
-        within: '#svg-arrows',
-        id: edge.id,
-        category: category,
-        name: text,
-        from: '#' + srcNodeId,
-        to: '#' + dstNodeId
+  // Create the jQuery Arrows connector
+  $().arrows({
+    within: "#svg-arrows",
+    id: edge.id,
+    class: category, // v2 option; `category` alias also accepted
+    name: text,
+    from: "#" + srcNodeId,
+    to: "#" + dstNodeId,
+  });
+
+  // Register the edge category toggle
+  syncClassOption("edge-class", category);
+  syncEdgeToggle(category);
+
+  window.shownEdgesCategoryCount[category] = (window.shownEdgesCategoryCount[category] || 0) + 1;
+}
+
+/**
+ * Remove a node and all its incident edges.
+ */
+function removeNode(nodeId) {
+  var node = window.nodes[nodeId];
+  if (!node) return;
+
+  // Remove incident edges first
+  window.edges
+    .filter(function (e) {
+      return e.srcNodeId === nodeId || e.dstNodeId === nodeId;
+    })
+    .forEach(function (e) {
+      removeEdge(e.id);
     });
 
-    var newArrow = $("#" + edge.id);
-    setInterval(function () {
-        newArrow.arrows("update");
-    }, 50);
+  // Remove the DOM element and bookkeeping
+  var el = document.getElementById(nodeId);
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+  delete window.nodes[nodeId];
 
-    // Add new edge toggle if new category
-    if ((!window.shownEdgesCategoryCount[category]) && (window.shownEdgesCategoryCount[category] !== 0)) {
-        const edgeToggleHTML = `
-            <button id="${category}-toggle" class="edge-toggle-hide button is-danger is-outlined">
-                <span>${category.toUpperCase()}</span>
-                <span class="icon is-small"><i class="fas fa-eye-slash"></i></span>
-            </button>
-        `;
-        document.getElementById("edge-toggles").innerHTML += edgeToggleHTML;
-
-        // Create new class option
-        var classSelectElem = document.getElementById('edge-class');
-        var newClassOption = document.createElement('option');
-        newClassOption.text = category; // Set the text content of the option
-        newClassOption.value = category; // Optionally, set the value of the option
-        classSelectElem.appendChild(newClassOption);
+  ["edge-src-node-id", "edge-dst-node-id"].forEach(function (selectId) {
+    var select = getSelect(selectId);
+    for (var i = select.options.length - 1; i >= 0; i--) {
+      if (select.options[i].value === nodeId) select.remove(i);
     }
+  });
+}
 
-    // Increment shown edges category count
-    if (!shownEdgesCategoryCount[edge.category]) shownEdgesCategoryCount[edge.category] = 0;
-    shownEdgesCategoryCount[edge.category] += 1;
-};
+/**
+ * Remove an edge and its arrow element.
+ */
+function removeEdge(edgeId) {
+  var idx = window.edges.findIndex(function (e) {
+    return e.id === edgeId;
+  });
+  if (idx === -1) return;
+
+  var edge = window.edges[idx];
+  window.edges.splice(idx, 1);
+
+  var arrowEl = document.getElementById(edgeId);
+  if (arrowEl) $(arrowEl).arrows("remove");
+
+  if (edge.category && window.shownEdgesCategoryCount[edge.category] !== undefined) {
+    window.shownEdgesCategoryCount[edge.category] = Math.max(
+      0,
+      window.shownEdgesCategoryCount[edge.category] - 1
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Visibility toggles
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Graph serialization
+/* exported exportGraph, importGraph */
+// ---------------------------------------------------------------------------
+
+function exportGraph() {
+  // eslint-disable-line no-unused-vars -- public browser API
+  return JSON.stringify(
+    {
+      nodes: Object.values(window.nodes).map(function (n) {
+        return { id: n.id, category: n.category, text: n.text };
+      }),
+      edges: window.edges.map(function (e) {
+        return {
+          srcNodeId: e.srcNodeId,
+          dstNodeId: e.dstNodeId,
+          category: e.category,
+          text: e.text,
+        };
+      }),
+    },
+    null,
+    2
+  );
+}
+
+function importGraph(json) {
+  // eslint-disable-line no-unused-vars -- public browser API
+  var data = typeof json === "string" ? JSON.parse(json) : json;
+
+  // Clear current graph
+  Object.keys(window.nodes).forEach(function (id) {
+    removeNode(id);
+  });
+  document.querySelectorAll(".node-toggle-hide, .edge-toggle-hide").forEach(function (btn) {
+    btn.remove();
+  });
+  window.shownNodesCategoryCount = {};
+  window.shownEdgesCategoryCount = {};
+
+  (data.nodes || []).forEach(addNode);
+  (data.edges || []).forEach(addEdge);
+}
