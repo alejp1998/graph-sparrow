@@ -3,8 +3,11 @@
 [![Version](https://img.shields.io/badge/version-2.1.0-8B5CF6?style=flat-square)](https://github.com/alejp1998/graph-sparrow)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![jQuery](https://img.shields.io/badge/jQuery-%3E%3D3.5-0769AD?style=flat-square)](https://jquery.com/)
+[![Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-10B981?style=flat-square)](https://alejp1998.github.io/graph-sparrow/)
 
 **Interactive graph visualization tool** with built-in **force-directed layout** ([Springy](https://github.com/dhotson/springy)), draggable nodes, category-based hide/show toggles, **JSON graph import/export**, and [jQuery Arrows](https://github.com/alejp1998/jquery-arrows) SVG connectors with live-following geometry.
+
+> 🎮 **Live Interactive Demo**: Try it in your browser with zero setup at **[https://alejp1998.github.io/graph-sparrow/](https://alejp1998.github.io/graph-sparrow/)**
 
 ![Graph Sparrow light theme](docs/screenshots/graph_sparrow_light.png)
 

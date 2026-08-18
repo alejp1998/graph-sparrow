@@ -1,11 +1,22 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Graph Sparrow — Interactive Graph Explorer</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="alternate icon" href="favicon.png" />
+    <script>
+      (function () {
+        var saved = localStorage.getItem("theme");
+        var theme =
+          saved ||
+          (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -287,11 +298,23 @@
         });
         window.springParams = { stiffness: 500, repulsion: 2000, damping: 0.5 };
 
+        // System theme change listener (follows OS if user hasn't manually locked a theme)
+        if (window.matchMedia) {
+          window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addEventListener("change", function (e) {
+              if (!localStorage.getItem("theme")) {
+                document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+              }
+            });
+        }
+
         // Theme toggle
         $("#btn-theme").on("click", function () {
-          var next =
-            document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          var current = document.documentElement.getAttribute("data-theme") || "dark";
+          var next = current === "dark" ? "light" : "dark";
           document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next);
         });
       });
     </script>
