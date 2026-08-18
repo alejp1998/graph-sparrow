@@ -1,5 +1,5 @@
 /**
- * jQuery Arrows Plugin v2.0.0
+ * jQuery Arrows Plugin v2.1.0
  * Adds stylable, responsive SVG connector arrows with curved paths and text tags between DOM elements.
  *
  * @license MIT
@@ -16,14 +16,10 @@
 })(function ($) {
   "use strict";
 
-  // Unique arrow counter
   var counter = 0;
 
   /**
    * Main jQuery plugin entrypoint.
-   *
-   * @param {Object|string} options - Configuration object or command ('update' | 'remove')
-   * @returns {jQuery}
    */
   $.fn.arrows = function (options) {
     if (options === "update") {
@@ -40,13 +36,12 @@
           within: "body",
           class: "arrow-default",
           name: "",
-          curvature: 0.0, // 0.0 = straight line, >0 = curved Bezier
+          curvature: 0.0,
           strokeWidth: 2,
         },
         options
       );
 
-      // Backward compatibility: v1.x used `category` for the CSS class
       if (!options.class && options.category) {
         opts.class = options.category;
       }
@@ -109,6 +104,7 @@
       class: options.class,
       name: options.name,
       curvature: options.curvature || 0.0,
+      container: container,
       node_from: $(nodes[0]),
       node_to: $(nodes[1]),
       nodes_dom: nodes,
@@ -172,7 +168,6 @@
       data.rect_to.left,
     ];
 
-    // Check if either node is hidden / zero-sized
     data.hidden =
       (data.cache[0] === 0 && data.cache[1] === 0 && data.cache[2] === 0 && data.cache[3] === 0) ||
       (data.cache[4] === 0 && data.cache[5] === 0 && data.cache[6] === 0 && data.cache[7] === 0);
@@ -194,71 +189,33 @@
   };
 
   /**
-   * Calculates the intersection point between a ray (from center to external point)
-   * and a rectangle border, with robust handling for vertical/horizontal alignment singularities.
+   * Calculates the exact intersection point between a ray originating from the
+   * rectangle center (cx, cy) toward an external point (px, py) and the rectangle border.
+   *
+   * Uses robust parametric ray-box intersection with ZERO division-by-zero singularities.
    */
-  var pointOnRect = function (x, y, minX, minY, maxX, maxY) {
-    var midX = (minX + maxX) / 2;
-    var midY = (minY + maxY) / 2;
-    var dx = midX - x;
-    var dy = midY - y;
+  var pointOnRect = function (px, py, minX, minY, maxX, maxY) {
+    var cx = (minX + maxX) / 2.0;
+    var cy = (minY + maxY) / 2.0;
+    var hw = (maxX - minX) / 2.0;
+    var hh = (maxY - minY) / 2.0;
 
-    // Handle exact center coincidence
+    var dx = px - cx;
+    var dy = py - cy;
+
     if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) {
-      return { x: midX, y: midY };
+      return { x: cx, y: cy };
     }
 
-    // Handle purely vertical alignment (dx == 0)
-    if (Math.abs(dx) < 1e-6) {
-      return {
-        x: midX,
-        y: y > midY ? maxY : minY,
-      };
-    }
+    var tx = Math.abs(dx) > 1e-6 ? hw / Math.abs(dx) : Infinity;
+    var ty = Math.abs(dy) > 1e-6 ? hh / Math.abs(dy) : Infinity;
 
-    // Handle purely horizontal alignment (dy == 0)
-    if (Math.abs(dy) < 1e-6) {
-      return {
-        x: x > midX ? maxX : minX,
-        y: midY,
-      };
-    }
+    var t = Math.min(tx, ty);
 
-    var m = dy / dx;
-
-    // Left border
-    if (x <= midX) {
-      var yLeft = m * (minX - x) + y;
-      if (minY <= yLeft && yLeft <= maxY) {
-        return { x: minX, y: yLeft };
-      }
-    }
-
-    // Right border
-    if (x >= midX) {
-      var yRight = m * (maxX - x) + y;
-      if (minY <= yRight && yRight <= maxY) {
-        return { x: maxX, y: yRight };
-      }
-    }
-
-    // Top border
-    if (y <= midY) {
-      var xTop = (minY - y) / m + x;
-      if (minX <= xTop && xTop <= maxX) {
-        return { x: xTop, y: minY };
-      }
-    }
-
-    // Bottom border
-    if (y >= midY) {
-      var xBottom = (maxY - y) / m + x;
-      if (minX <= xBottom && xBottom <= maxX) {
-        return { x: xBottom, y: maxY };
-      }
-    }
-
-    return { x: midX, y: midY };
+    return {
+      x: cx + t * dx,
+      y: cy + t * dy,
+    };
   };
 
   /**
@@ -274,10 +231,10 @@
         minY +
         "px; left: " +
         minX +
-        "px; z-index: 1; pointer-events: none;"
+        "px; z-index: 1; pointer-events: none; overflow: visible;"
     );
-    svg.setAttribute("width", width);
-    svg.setAttribute("height", height);
+    svg.setAttribute("width", Math.max(1, width));
+    svg.setAttribute("height", Math.max(1, height));
     return svg;
   };
 
@@ -293,9 +250,9 @@
       id +
       '-triangle" class="' +
       (className || "") +
-      '" viewBox="0 0 10 10" refX="8" refY="5"' +
+      '" viewBox="0 0 10 10" refX="9" refY="5"' +
       ' markerUnits="strokeWidth" markerWidth="6" markerHeight="6" orient="auto">' +
-      '<path class="svg-line-triangle" d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"></path>' +
+      '<path class="svg-line-triangle" d="M 0 1.5 L 9 5 L 0 8.5 z" fill="currentColor"></path>' +
       "</marker>";
     svg.appendChild(defs);
   };
@@ -311,14 +268,13 @@
     if (!curvature || Math.abs(curvature) < 1e-4) {
       d = "M " + x1 + " " + y1 + " L " + x2 + " " + y2;
     } else {
-      // Calculate perpendicular offset for curved Bezier arch
       var mx = (x1 + x2) / 2;
       var my = (y1 + y2) / 2;
       var dx = x2 - x1;
       var dy = y2 - y1;
       var len = Math.sqrt(dx * dx + dy * dy) || 1;
-      var cx = mx - (dy / len) * curvature * 40;
-      var cy = my + (dx / len) * curvature * 40;
+      var cx = mx - (dy / len) * curvature * 50;
+      var cy = my + (dx / len) * curvature * 50;
       d = "M " + x1 + " " + y1 + " Q " + cx + " " + cy + " " + x2 + " " + y2;
     }
 
@@ -367,7 +323,7 @@
   };
 
   /**
-   * Updates an arrow position and geometry.
+   * Updates an arrow position and geometry with proper container-relative coordinates.
    */
   var update = function (arrow) {
     var data = $.data(arrow, "arrow");
@@ -376,51 +332,46 @@
     getState(data);
     if (data.unmodified || data.hidden) return;
 
-    var from_cx = (data.rect_from.left + data.rect_from.right) / 2 + window.scrollX;
-    var from_cy = (data.rect_from.bottom + data.rect_from.top) / 2 + window.scrollY;
-    var to_cx = (data.rect_to.left + data.rect_to.right) / 2 + window.scrollX;
-    var to_cy = (data.rect_to.bottom + data.rect_to.top) / 2 + window.scrollY;
+    // Determine container offset for correct coordinate translation
+    var containerEl =
+      data.container && data.container.length ? data.container.get(0) : document.body;
+    var containerRect = containerEl.getBoundingClientRect();
+    var cScrollLeft = containerEl.scrollLeft || 0;
+    var cScrollTop = containerEl.scrollTop || 0;
 
-    var PADDING = 30;
-    var minX = Math.min(from_cx, to_cx) - PADDING;
-    var minY = Math.min(from_cy, to_cy) - PADDING;
-    var width = Math.abs(from_cx - to_cx) + PADDING * 2;
-    var height = Math.abs(from_cy - to_cy) + PADDING * 2;
+    // Convert node rectangles from viewport space to container space
+    var from_left = data.rect_from.left - containerRect.left + cScrollLeft;
+    var from_right = data.rect_from.right - containerRect.left + cScrollLeft;
+    var from_top = data.rect_from.top - containerRect.top + cScrollTop;
+    var from_bottom = data.rect_from.bottom - containerRect.top + cScrollTop;
+
+    var to_left = data.rect_to.left - containerRect.left + cScrollLeft;
+    var to_right = data.rect_to.right - containerRect.left + cScrollLeft;
+    var to_top = data.rect_to.top - containerRect.top + cScrollTop;
+    var to_bottom = data.rect_to.bottom - containerRect.top + cScrollTop;
+
+    var from_cx = (from_left + from_right) / 2.0;
+    var from_cy = (from_top + from_bottom) / 2.0;
+    var to_cx = (to_left + to_right) / 2.0;
+    var to_cy = (to_top + to_bottom) / 2.0;
+
+    // Bounding box encompassing both node rectangles + padding
+    var PADDING = 20;
+    var minX = Math.min(from_left, to_left) - PADDING;
+    var minY = Math.min(from_top, to_top) - PADDING;
+    var maxX = Math.max(from_right, to_right) + PADDING;
+    var maxY = Math.max(from_bottom, to_bottom) + PADDING;
+    var width = maxX - minX;
+    var height = maxY - minY;
 
     var svg = modifyCanvas(data.id, minX, minY, width, height);
     if (!svg) return;
 
-    var from_rect_doc = {
-      left: data.rect_from.left + window.scrollX,
-      right: data.rect_from.right + window.scrollX,
-      top: data.rect_from.top + window.scrollY,
-      bottom: data.rect_from.bottom + window.scrollY,
-    };
-
-    var to_rect_doc = {
-      left: data.rect_to.left + window.scrollX,
-      right: data.rect_to.right + window.scrollX,
-      top: data.rect_to.top + window.scrollY,
-      bottom: data.rect_to.bottom + window.scrollY,
-    };
-
-    var to_int = pointOnRect(
-      from_cx,
-      from_cy,
-      to_rect_doc.left,
-      to_rect_doc.top,
-      to_rect_doc.right,
-      to_rect_doc.bottom
-    );
-
-    var from_int = pointOnRect(
-      to_cx,
-      to_cy,
-      from_rect_doc.left,
-      from_rect_doc.top,
-      from_rect_doc.right,
-      from_rect_doc.bottom
-    );
+    // Calculate exact boundary intersection points
+    // From-node ray goes from from_cx towards to_cx
+    var from_int = pointOnRect(to_cx, to_cy, from_left, from_top, from_right, from_bottom);
+    // To-node ray goes from to_cx towards from_cx
+    var to_int = pointOnRect(from_cx, from_cy, to_left, to_top, to_right, to_bottom);
 
     drawArrow(
       data.id,
@@ -448,9 +399,8 @@
     });
   };
 
-  // Expose pure functions for unit testing
   $.arrows = {
     pointOnRect: pointOnRect,
-    version: "2.0.0",
+    version: "2.1.0",
   };
 });

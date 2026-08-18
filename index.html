@@ -11,14 +11,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
-    <script src="jquery.arrows.js"></script>
-    <script src="springy.js"></script>
-    <script src="addnodesedges.js"></script>
-    <script src="hideshownodes.js"></script>
-    <script src="edgenodetoggles.js"></script>
-    <script src="reloadgraphlayout.js"></script>
   </head>
   <body>
     <header>
@@ -94,9 +86,19 @@
       <section class="graph-stage">
         <div id="svg-arrows"></div>
         <div id="graph-viewer"></div>
+        <div id="hidden-nodes" class="hidden-pool"></div>
         <div class="hint">drag nodes · toggle categories · re-layout with spring physics</div>
       </section>
     </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+    <script src="jquery.arrows.js"></script>
+    <script src="springy.js"></script>
+    <script src="addnodesedges.js"></script>
+    <script src="hideshownodes.js"></script>
+    <script src="edgenodetoggles.js"></script>
+    <script src="reloadgraphlayout.js"></script>
 
     <script>
       $(document).ready(function () {
@@ -131,6 +133,10 @@
           { srcNodeId: "cloud", dstNodeId: "dt", category: "green-edge", text: "state sync" },
           { srcNodeId: "dt", dstNodeId: "sensor-1", category: "orange-edge", text: "control" },
         ].forEach(addEdge);
+
+        // Auto-run the force-directed layout so nodes distribute immediately
+        // (must run AFTER edges exist — reloadGraphLayout hides unconnected nodes)
+        reloadGraphLayout();
 
         // Node / edge add buttons
         $("#add-node").on("click", function () {

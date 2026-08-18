@@ -22,7 +22,7 @@ window.arrowLoop = setInterval(function () {
   var arrows = document.querySelectorAll("arrow");
   for (var i = 0; i < arrows.length; i++) {
     var arrowEl = arrows[i];
-    if (arrowEl.arrows) arrowEl.arrows("update");
+    if (arrowEl) $(arrowEl).arrows("update");
   }
 }, 50);
 

@@ -364,3 +364,16 @@ input[type="range"] {
   stroke-width: 2.5;
   fill: none;
 }
+
+/* Hidden nodes pool (hide/show lifecycle) */
+.hidden-pool {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hidden-pool .node-isHidden {
+  opacity: 0;
+  pointer-events: none;
+}

@@ -58,29 +58,37 @@ function reloadGraphLayout() {
   }
 
   // Get min position values
-  let [minX, minY] = [Infinity, Infinity];
-  let [maxX, maxY] = [-Infinity, -Infinity];
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
   for (const [nodeId] of Object.entries(window.nodes)) {
     if (window.nodes[nodeId].isHidden) continue;
-    if (layout.nodePoints[nodeId].p.x < minX) minX = layout.nodePoints[nodeId].p.x;
-    if (layout.nodePoints[nodeId].p.y < minY) minY = layout.nodePoints[nodeId].p.y;
-    if (layout.nodePoints[nodeId].p.x > maxX) maxX = layout.nodePoints[nodeId].p.x;
-    if (layout.nodePoints[nodeId].p.y > maxY) maxY = layout.nodePoints[nodeId].p.y;
+    const p = layout.nodePoints[nodeId].p;
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
   }
 
-  // Tune and assign positions to non-hidden nodes
+  // Guard against degenerate layouts (single node / all same position)
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+
+  // Tune and assign positions to non-hidden nodes (percentage of the stage)
   for (const [nodeId] of Object.entries(window.nodes)) {
     if (window.nodes[nodeId].isHidden) continue;
 
     // Get node html element
     node = document.getElementById(nodeId);
+    if (!node) continue;
 
-    // Compute new position and assign to html element
-    const pos = [
-      5 + (75 * (layout.nodePoints[nodeId].p.x - minX)) / (maxX - minX),
-      5 + (75 * (layout.nodePoints[nodeId].p.y - minY)) / (maxY - minY),
-    ];
-    node.style = `left: ${pos[0]}%; top: ${pos[1]}%;`;
+    // Compute new position and assign to html element (individual style props)
+    const p = layout.nodePoints[nodeId].p;
+    const posX = 8 + (84 * (p.x - minX)) / spanX;
+    const posY = 8 + (84 * (p.y - minY)) / spanY;
+    node.style.left = posX.toFixed(2) + "%";
+    node.style.top = posY.toFixed(2) + "%";
   }
 }
 

@@ -1,12 +1,12 @@
 # 🕸️ Graph Sparrow
 
-[![Version](https://img.shields.io/badge/version-2.0.0-8B5CF6?style=flat-square)](https://github.com/alejp1998/graph-sparrow)
+[![Version](https://img.shields.io/badge/version-2.1.0-8B5CF6?style=flat-square)](https://github.com/alejp1998/graph-sparrow)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![jQuery](https://img.shields.io/badge/jQuery-%3E%3D3.5-0769AD?style=flat-square)](https://jquery.com/)
 
 **Interactive graph visualization tool** with built-in **force-directed layout** ([Springy](https://github.com/dhotson/springy)), draggable nodes, category-based hide/show toggles, **JSON graph import/export**, and [jQuery Arrows](https://github.com/alejp1998/jquery-arrows) SVG connectors with live-following geometry.
 
-![Graph Sparrow dark theme](docs/screenshots/graph_sparrow_dark.png)
+![Graph Sparrow light theme](docs/screenshots/graph_sparrow_light.png)
 
 ## Features
 
@@ -18,7 +18,7 @@
 - **Node lifecycle** — hide/show moves nodes to a hidden pool; removal cascades to incident edges
 - **Cockpit UI** — 100vh locked layout, dark/light themes, no page scrollbars
 
-![Graph Sparrow light theme](docs/screenshots/graph_sparrow_light.png)
+![Graph Sparrow edited graph](docs/screenshots/graph_sparrow_edited.png)
 
 ## Quick Start
 
