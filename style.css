@@ -116,7 +116,7 @@ header {
 main {
   flex: 1;
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px 1fr 290px;
   min-height: 0;
 }
 
@@ -127,6 +127,17 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+.sidebar-right {
+  border-right: none;
+  border-left: 1px solid var(--border);
+  background: rgba(139, 92, 246, 0.03);
+}
+.panel-subtitle {
+  font-size: 0.65rem;
+  color: var(--dim);
+  font-weight: 400;
+  font-family: var(--font-body);
 }
 .panel {
   background: var(--bg-card);

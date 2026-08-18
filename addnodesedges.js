@@ -14,9 +14,7 @@ window.shownNodesCategoryCount = {};
 window.shownEdgesCategoryCount = {};
 
 /**
- * Single global arrow-update loop.
- * (Previously each edge spawned its own setInterval — a memory leak that
- * kept firing 50ms callbacks forever, even after the edge was removed.)
+ * Single global arrow-update loop at 60 FPS (16ms) for smooth physics tracking.
  */
 window.arrowLoop = setInterval(function () {
   var arrows = document.querySelectorAll("arrow");
@@ -24,7 +22,7 @@ window.arrowLoop = setInterval(function () {
     var arrowEl = arrows[i];
     if (arrowEl) $(arrowEl).arrows("update");
   }
-}, 50);
+}, 16);
 
 // ---------------------------------------------------------------------------
 // DOM helpers
@@ -63,40 +61,66 @@ function syncClassOption(selectId, className) {
   select.appendChild(option);
 }
 
+// Category color palette (matches style.css node/edge classes)
+var CATEGORY_COLORS = {
+  "green-node": "#10B981",
+  "blue-node": "#3B82F6",
+  "red-node": "#F43F5E",
+  "cyan-node": "#06B6D4",
+  "amber-node": "#F59E0B",
+  "purple-node": "#8B5CF6",
+  "blue-dashed-edge": "#3B82F6",
+  "purple-edge": "#8B5CF6",
+  "orange-edge": "#F59E0B",
+  "green-edge": "#10B981",
+  "rose-edge": "#F43F5E",
+};
+
+function buildToggleButton(category, kind) {
+  var container = document.getElementById(kind === "node" ? "node-toggles" : "edge-toggles");
+  if (!container) return;
+
+  var btn = document.createElement("button");
+  btn.id = category + "-toggle";
+  btn.className = (kind === "node" ? "node-toggle-hide" : "edge-toggle-hide") + " toggle-btn";
+  btn.setAttribute("data-kind", kind);
+  btn.setAttribute("data-category", category);
+
+  var color = CATEGORY_COLORS[category] || "var(--primary)";
+  btn.innerHTML =
+    '<span class="dot" style="background: ' +
+    color +
+    "; color: " +
+    color +
+    '"></span>' +
+    '<span class="toggle-name">' +
+    category.replace(/-/g, " ") +
+    "</span>" +
+    '<span class="count">0</span>' +
+    '<span class="toggle-eye">👁</span>';
+  // Note: click delegation handled in edgenodetoggles.js
+  container.appendChild(btn);
+  return btn;
+}
+
+function updateToggleCount(category, kind) {
+  var counters = kind === "node" ? window.shownNodesCategoryCount : window.shownEdgesCategoryCount;
+  var btn = document.getElementById(category + "-toggle");
+  if (!btn) return;
+  var countEl = btn.querySelector(".count");
+  if (countEl) countEl.textContent = counters[category] || 0;
+}
+
 function syncNodeToggle(category) {
   if (window.shownNodesCategoryCount[category] !== undefined) return;
   window.shownNodesCategoryCount[category] = 0;
-
-  var container = document.getElementById("node-toggles");
-  if (!container) return;
-  var btn = document.createElement("button");
-  btn.id = category + "-toggle";
-  btn.className = "node-toggle-hide button is-danger is-outlined";
-  btn.innerHTML =
-    "<span>" +
-    category.toUpperCase() +
-    "</span>" +
-    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>';
-  // Note: click delegation handled in edgenodetoggles.js
-  container.appendChild(btn);
+  buildToggleButton(category, "node");
 }
 
 function syncEdgeToggle(category) {
   if (window.shownEdgesCategoryCount[category] !== undefined) return;
   window.shownEdgesCategoryCount[category] = 0;
-
-  var container = document.getElementById("edge-toggles");
-  if (!container) return;
-  var btn = document.createElement("button");
-  btn.id = category + "-toggle";
-  btn.className = "edge-toggle-hide button is-danger is-outlined";
-  btn.innerHTML =
-    "<span>" +
-    category.toUpperCase() +
-    "</span>" +
-    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>';
-  // Note: click delegation handled in edgenodetoggles.js
-  container.appendChild(btn);
+  buildToggleButton(category, "edge");
 }
 
 // ---------------------------------------------------------------------------
@@ -153,6 +177,7 @@ function addNode(node) {
   syncNodeToggle(category);
 
   window.shownNodesCategoryCount[category] = (window.shownNodesCategoryCount[category] || 0) + 1;
+  updateToggleCount(category, "node");
 }
 
 /**
@@ -184,6 +209,7 @@ function addEdge(edge) {
   syncEdgeToggle(category);
 
   window.shownEdgesCategoryCount[category] = (window.shownEdgesCategoryCount[category] || 0) + 1;
+  updateToggleCount(category, "edge");
 }
 
 /**
@@ -235,6 +261,7 @@ function removeEdge(edgeId) {
       0,
       window.shownEdgesCategoryCount[edge.category] - 1
     );
+    updateToggleCount(edge.category, "edge");
   }
 }
 

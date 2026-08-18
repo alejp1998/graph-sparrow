@@ -83,12 +83,25 @@ function reloadGraphLayout() {
     node = document.getElementById(nodeId);
     if (!node) continue;
 
-    // Compute new position and assign to html element (individual style props)
+    // Compute new position with generous screen margins:
+    // centers map into 12-88%, then clamped so the FULL node rect
+    // (including its own width/height) stays within [8%, 92%] of the stage.
     const p = layout.nodePoints[nodeId].p;
-    const posX = 8 + (84 * (p.x - minX)) / spanX;
-    const posY = 8 + (84 * (p.y - minY)) / spanY;
-    node.style.left = posX.toFixed(2) + "%";
-    node.style.top = posY.toFixed(2) + "%";
+    const pctX = 12 + (76 * (p.x - minX)) / spanX;
+    const pctY = 12 + (76 * (p.y - minY)) / spanY;
+
+    const stageW = node.parentElement ? node.parentElement.clientWidth : 1300;
+    const stageH = node.parentElement ? node.parentElement.clientHeight : 800;
+    const halfW = (node.offsetWidth || 130) / 2;
+    const halfH = (node.offsetHeight || 60) / 2;
+
+    const minLeft = (halfW / stageW) * 100 + 8;
+    const maxLeft = 100 - minLeft;
+    const minTop = (halfH / stageH) * 100 + 8;
+    const maxTop = 100 - minTop;
+
+    node.style.left = Math.min(maxLeft, Math.max(minLeft, pctX)).toFixed(2) + "%";
+    node.style.top = Math.min(maxTop, Math.max(minTop, pctY)).toFixed(2) + "%";
   }
 }
 

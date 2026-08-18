@@ -39,15 +39,15 @@ function hideEdge(edge) {
   // Mark the edge as hidden
   edge.isHidden = true;
   window.shownEdgesCategoryCount[edge.category]--;
+  updateToggleCount(edge.category, "edge");
 
   // Turn the hide/show nodes button of same category into show type if it was last node of the category
   if (window.shownEdgesCategoryCount[edge.category] === 0) {
     var button = document.getElementById(`${edge.category}-toggle`);
     button.blur();
     button.classList.replace("edge-toggle-hide", "edge-toggle-show");
-    button.classList.replace("is-danger", "is-link");
-    button.innerHTML = `<span>${edge.category.toUpperCase()}</span>
-      <span class="icon is-small"><i class="fas fa-eye"></i></span>`;
+    var eye = button.querySelector(".toggle-eye");
+    if (eye) eye.textContent = "🙈";
   }
 }
 
@@ -69,14 +69,14 @@ function showEdge(edge) {
   // Mark the edge as hidden
   edge.isHidden = false;
   window.shownEdgesCategoryCount[edge.category]++;
+  updateToggleCount(edge.category, "edge");
 
   // Turn the hide/show nodes button of same category into hide type
   var button = document.getElementById(`${edge.category}-toggle`);
   button.blur();
   button.classList.replace("edge-toggle-show", "edge-toggle-hide");
-  button.classList.replace("is-link", "is-danger");
-  button.innerHTML = `<span>${edge.category.toUpperCase()}</span>
-      <span class="icon is-small"><i class="fas fa-eye-slash"></i></span>`;
+  var eye = button.querySelector(".toggle-eye");
+  if (eye) eye.textContent = "👁";
 }
 
 // Show node edges
@@ -100,6 +100,7 @@ function hideNode(node) {
   // Mark the node as hidden
   node.isHidden = true;
   window.shownNodesCategoryCount[node.category]--;
+  updateToggleCount(node.category, "node");
 
   // Hide node edges
   hideNodeEdges(node);
@@ -122,9 +123,8 @@ function hideNode(node) {
     var button = document.getElementById(`${node.category}-toggle`);
     button.blur();
     button.classList.replace("node-toggle-hide", "node-toggle-show");
-    button.classList.replace("is-danger", "is-link");
-    button.innerHTML = `<span>${node.category.toUpperCase()}</span>
-      <span class="icon is-small"><i class="fas fa-eye"></i></span>`;
+    var eye = button.querySelector(".toggle-eye");
+    if (eye) eye.textContent = "🙈";
   }
 
   // Append the node as hiddenNode
@@ -139,6 +139,7 @@ function showNode(node) {
   // Mark the node as non-hidden
   node.isHidden = false;
   window.shownNodesCategoryCount[node.category]++;
+  updateToggleCount(node.category, "node");
 
   // Show node edges
   showNodeEdges(node);
@@ -164,9 +165,8 @@ function showNode(node) {
   var button = document.getElementById(`${node.category}-toggle`);
   button.blur();
   button.classList.replace("node-toggle-show", "node-toggle-hide");
-  button.classList.replace("is-link", "is-danger");
-  button.innerHTML = `<span>${node.category.toUpperCase()}</span>
-    <span class="icon is-small"><i class="fas fa-eye-slash"></i></span>`;
+  var eye = button.querySelector(".toggle-eye");
+  if (eye) eye.textContent = "👁";
 
   // Append to shown nodes div
   document.getElementById("graph-viewer").append(nodeElem);
