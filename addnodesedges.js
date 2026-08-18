@@ -248,7 +248,6 @@ function removeEdge(edgeId) {
 // ---------------------------------------------------------------------------
 
 function exportGraph() {
-  // eslint-disable-line no-unused-vars -- public browser API
   return JSON.stringify(
     {
       nodes: Object.values(window.nodes).map(function (n) {
@@ -269,7 +268,6 @@ function exportGraph() {
 }
 
 function importGraph(json) {
-  // eslint-disable-line no-unused-vars -- public browser API
   var data = typeof json === "string" ? JSON.parse(json) : json;
 
   // Clear current graph
