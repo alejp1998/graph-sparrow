@@ -102,6 +102,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn" id="btn-guide">📖 Guide</button>
         <button class="btn" id="reload-graph-layout">🎯 Re-layout</button>
         <button class="btn" id="export-graph">⬇ Export JSON</button>
         <button class="btn" id="import-graph">⬆ Import JSON</button>
@@ -176,6 +177,75 @@
         </section>
       </aside>
     </main>
+
+    <div id="guide" class="modal hidden">
+      <div class="modal-backdrop" data-close-guide></div>
+      <div class="modal-card">
+        <button class="modal-close" data-close-guide title="Close">✕</button>
+        <div class="modal-title">📖 Graph Sparrow — Guide</div>
+
+        <section class="guide-section">
+          <h3>What it is</h3>
+          <p>
+            <b>Graph Sparrow</b> is an interactive <b>graph editor and visualizer</b>: build
+            networks of nodes and edges, let a <b>force-directed physics simulation</b> lay them
+            out, group them by category, and share them as JSON. Connectors are drawn by the
+            <a href="https://github.com/alejp1998/jquery-arrows" target="_blank" rel="noopener"
+              >jQuery Arrows</a
+            >
+            plugin and follow the nodes as you drag them.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>How it works</h3>
+          <ul>
+            <li>
+              <b>Force-directed layout</b> — the Springy physics engine simulates springs (edges)
+              and repulsion (nodes); <b>Stiffness</b>, <b>Repulsion</b>, and <b>Damping</b> sliders
+              tune the feel, and 🎯 Re-layout runs 400 deterministic ticks.
+            </li>
+            <li>
+              <b>Live SVG arrows</b> — colored, labeled connectors updated at 60 FPS and instantly
+              during drags.
+            </li>
+            <li>
+              <b>Category system</b> — nodes and edges carry color classes; the right panel toggles
+              entire categories with one click (live count badges).
+            </li>
+            <li>
+              <b>JSON serialization</b> — export/import the whole graph for sharing or backup.
+            </li>
+            <li>
+              <b>Node lifecycle</b> — hide/show moves nodes to a hidden pool; removing a node
+              cascades to its incident edges.
+            </li>
+            <li>
+              <b>Cockpit UI</b> — 100vh locked layout with system-aware theme, no page scrollbars.
+            </li>
+          </ul>
+        </section>
+
+        <section class="guide-section">
+          <h3>How to use this demo</h3>
+          <ul>
+            <li><b>Drag nodes</b> — arrows follow in real time.</li>
+            <li>
+              <b>🎯 Re-layout</b> — re-run the physics simulation; tune the sliders first for
+              different spreads.
+            </li>
+            <li>
+              <b>➕ Add Node / 🔗 Add Edge</b> — extend the graph through the left sidebar forms.
+            </li>
+            <li>
+              <b>👁️ Node / Edge Categories</b> — the right panel hides or shows whole categories.
+            </li>
+            <li><b>⬇ Export / ⬆ Import</b> — save the graph as JSON and reload it later.</li>
+            <li><b>🌙/☀️ Theme</b> — follows your system preference by default.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
@@ -308,6 +378,23 @@
               }
             });
         }
+
+        // Guide modal
+        var guideOpen = false;
+        $("#btn-guide").on("click", function () {
+          guideOpen = true;
+          $("#guide").removeClass("hidden");
+        });
+        $("[data-close-guide]").on("click", function () {
+          guideOpen = false;
+          $("#guide").addClass("hidden");
+        });
+        $(document).on("keydown", function (e) {
+          if (e.key === "Escape" && guideOpen) {
+            guideOpen = false;
+            $("#guide").addClass("hidden");
+          }
+        });
 
         // Theme toggle
         $("#btn-theme").on("click", function () {
