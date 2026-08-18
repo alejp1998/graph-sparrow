@@ -174,8 +174,16 @@ function showNode(node) {
   document.getElementById("graph-viewer").append(nodeElem);
 }
 
-// Event delegation for hide buttons
+// Event delegation for remove buttons
 document.getElementById("graph-viewer").addEventListener("click", function (e) {
+  if (e.target.closest(".remove-button")) {
+    const button = e.target.closest(".remove-button");
+    const nodeElem = button.closest(".node");
+    const nodeId = nodeElem.id;
+    removeNode(nodeId);
+    return;
+  }
+
   if (e.target.closest(".hide-button")) {
     // Get the pressed hide button
     const button = e.target.closest(".hide-button");

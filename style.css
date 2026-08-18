@@ -265,22 +265,42 @@ input[type="range"] {
   font-weight: 400;
   margin-top: 0.15rem;
 }
-.node .hide-button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--dim);
+.node .node-btn {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 .node .hide-button:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.12);
+}
+.node .remove-button {
   color: var(--rose);
+  border-color: rgba(244, 63, 94, 0.5);
+  background: rgba(244, 63, 94, 0.08);
+}
+.node .remove-button:hover {
+  color: #fff;
   border-color: var(--rose);
+  background: var(--rose);
+  transform: scale(1.08);
+}
+.node .media-right {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 .node .media {
   display: flex;

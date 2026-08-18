@@ -153,8 +153,9 @@ function addNode(node) {
     (text ? '<h6 class="subtitle is-6">' + text + "</h6>" : "") +
     "</div>" +
     '<div class="media-right">' +
-    '<button class="button is-danger is-outlined is-rounded is-small hide-button" title="Hide node">' +
-    '<span class="icon is-small"><i class="fas fa-eye-slash"></i></span>' +
+    '<button class="node-btn remove-button" title="Remove node" aria-label="Remove node">✕</button>' +
+    '<button class="node-btn hide-button" title="Hide node" aria-label="Hide node">' +
+    '<span class="toggle-eye">🙈</span>' +
     "</button>" +
     "</div>" +
     "</div>";
