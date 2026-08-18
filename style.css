@@ -62,13 +62,13 @@ header {
 .brand-logo {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: #ffffff;
+  border: 1.5px solid #0f172a;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 .brand-title {
   font-family: var(--font-heading);
