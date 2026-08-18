@@ -287,26 +287,51 @@
   };
 
   /**
-   * Adds the text label tag along the arrow path.
+   * Adds the text label at the arrow's midpoint.
+   * Labels always read left-to-right: the rotation follows the path only for
+   * shallow angles (|angle| <= 55°) and clamps to horizontal for steep arrows,
+   * so text is never upside down or sideways regardless of arrow orientation.
    */
-  var addArrowName = function (svg, id, name) {
+  var addArrowName = function (svg, id, name, x1, y1, x2, y2, curvature) {
     if (!name) return;
 
     var prevText = document.getElementById(id + "-svg-text");
     if (prevText) prevText.remove();
 
+    // Path midpoint: quadratic Bézier at t = 0.5, or line midpoint
+    var mx, my;
+    if (curvature === 0) {
+      mx = (x1 + x2) / 2;
+      my = (y1 + y2) / 2;
+    } else {
+      var dx = x2 - x1;
+      var dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var cx = (x1 + x2) / 2 - (dy / len) * curvature * 50;
+      var cy = (y1 + y2) / 2 + (dx / len) * curvature * 50;
+      mx = 0.25 * x1 + 0.5 * cx + 0.25 * x2;
+      my = 0.25 * y1 + 0.5 * cy + 0.25 * y2;
+    }
+
+    // Path angle, normalized to (-90, 90] so the text always reads left-to-right
+    var angleDeg = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+    while (angleDeg > 90) angleDeg -= 180;
+    while (angleDeg <= -90) angleDeg += 180;
+
+    // Steep arrows keep the label horizontal for readability
+    var rotation = Math.abs(angleDeg) > 55 ? 0 : angleDeg;
+
     var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("id", id + "-svg-text");
     text.setAttribute("class", "svg-text");
+    text.setAttribute("x", mx);
+    text.setAttribute("y", my);
     text.setAttribute("dy", "-6px");
     text.setAttribute("text-anchor", "middle");
-
-    var textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-    textPath.setAttribute("href", "#" + id + "-svg-line");
-    textPath.setAttribute("startOffset", "50%");
-    textPath.textContent = name;
-
-    text.appendChild(textPath);
+    if (rotation !== 0) {
+      text.setAttribute("transform", "rotate(" + rotation + " " + mx + " " + my + ")");
+    }
+    text.textContent = name;
     svg.appendChild(text);
   };
 
@@ -319,7 +344,7 @@
 
     addTriangleMarkerDef(svg, id, className);
     addArrowLine(svg, id, x1, y1, x2, y2, curvature);
-    addArrowName(svg, id, name);
+    addArrowName(svg, id, name, x1, y1, x2, y2, curvature);
   };
 
   /**
