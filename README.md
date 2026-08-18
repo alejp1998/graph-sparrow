@@ -1,4 +1,4 @@
-# 🕸️ Graph Sparrow
+# <img src="favicon.svg" width="32" height="32" valign="middle" alt="Graph Sparrow icon" /> Graph Sparrow
 
 [![Version](https://img.shields.io/badge/version-2.1.0-8B5CF6?style=flat-square)](https://github.com/alejp1998/graph-sparrow)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)

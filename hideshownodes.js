@@ -1,3 +1,5 @@
+/* global updateToggleCount */
+
 // Create shared shown category count dict
 window.shownNodesCategoryCount = getShownNodesCategoryCount();
 window.shownEdgesCategoryCount = getShownEdgesCategoryCount();
