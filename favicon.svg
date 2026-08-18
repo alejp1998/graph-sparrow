@@ -1,9 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Minimal White Rounded Card -->
   <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="2.5"/>
-  <path d="M 14 36 C 22 24 30 15 44 13 C 50 12 54 14 54 14 C 54 14 52 20 48 25 C 40 33 28 39 18 41" fill="none" stroke="#0F172A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M 18 41 L 12 51 L 25 44" fill="none" stroke="#0F172A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <polygon points="54,14 60,13 54,18" fill="#0F172A"/>
-  <circle cx="44" cy="13" r="3.5" fill="#0F172A"/>
-  <circle cx="34" cy="23" r="3" fill="#0F172A"/>
-  <circle cx="18" cy="41" r="3" fill="#0F172A"/>
+  <!-- Graph Network Edges -->
+  <g stroke="#0F172A" stroke-width="2.8" stroke-linecap="round">
+    <!-- Hub connections -->
+    <line x1="17" y1="18" x2="32" y2="32"/>
+    <line x1="47" y1="18" x2="32" y2="32"/>
+    <line x1="32" y1="32" x2="19" y2="46"/>
+    <line x1="32" y1="32" x2="45" y2="46"/>
+    <!-- Peripheral edges -->
+    <line x1="17" y1="18" x2="47" y2="18" stroke-dasharray="3.5,2.5"/>
+    <line x1="19" y1="46" x2="45" y2="46"/>
+  </g>
+  <!-- Graph Nodes / Vertices (filled black discs with white center highlight) -->
+  <!-- Top-left -->
+  <circle cx="17" cy="18" r="4.5" fill="#0F172A"/>
+  <circle cx="17" cy="18" r="1.5" fill="#FFFFFF"/>
+  <!-- Top-right -->
+  <circle cx="47" cy="18" r="4.5" fill="#0F172A"/>
+  <circle cx="47" cy="18" r="1.5" fill="#FFFFFF"/>
+  <!-- Central Hub Node -->
+  <circle cx="32" cy="32" r="6" fill="#0F172A"/>
+  <circle cx="32" cy="32" r="2.2" fill="#FFFFFF"/>
+  <!-- Bottom-left -->
+  <circle cx="19" cy="46" r="4.5" fill="#0F172A"/>
+  <circle cx="19" cy="46" r="1.5" fill="#FFFFFF"/>
+  <!-- Bottom-right -->
+  <circle cx="45" cy="46" r="4.5" fill="#0F172A"/>
+  <circle cx="45" cy="46" r="1.5" fill="#FFFFFF"/>
 </svg>
